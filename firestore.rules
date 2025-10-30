@@ -1,0 +1,125 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isValidEmail(email) {
+      return email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+    
+    // Products
+    match /products/{productId} {
+      // Todos podem ler produtos ativos
+      allow read: if resource.data.active == true;
+      // Apenas admin pode criar/editar/deletar
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Goals
+    match /goals/{goalId} {
+      // Todos podem ler metas ativas
+      allow read: if resource.data.active == true;
+      // Apenas admin pode gerenciar
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Raffles
+    match /raffles/{raffleId} {
+      // Todos podem ler rifas ativas
+      allow read: if resource.data.status in ['active', 'ended', 'drawn'];
+      // Apenas admin pode gerenciar
+      allow create, update, delete: if isAdmin();
+      
+      // Tickets da rifa
+      match /tickets/{ticketId} {
+        // Comprador pode ler seu próprio ticket
+        allow read: if isAdmin() || 
+                      (isAuthenticated() && resource.data.buyerId == request.auth.uid) ||
+                      resource.data.buyerEmail == request.auth.token.email;
+        // Apenas sistema pode criar (via Cloud Function)
+        allow create: if isAdmin();
+        // Ninguém pode atualizar ou deletar tickets
+        allow update, delete: if false;
+      }
+    }
+    
+    // Events
+    match /events/{eventId} {
+      // Todos podem ler eventos
+      allow read: if true;
+      // Apenas admin pode gerenciar
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Orders
+    match /orders/{orderId} {
+      // Usuário pode ler suas próprias orders
+      allow read: if isAdmin() || 
+                    (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                    resource.data.buyer.email == request.auth.token.email;
+      // Apenas sistema cria orders (via Cloud Function)
+      allow create: if isAdmin();
+      // Apenas admin pode atualizar status
+      allow update: if isAdmin() && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']);
+      // Ninguém deleta orders
+      allow delete: if false;
+    }
+    
+    // Donations
+    match /donations/{donationId} {
+      // Doador pode ler sua própria doação
+      allow read: if isAdmin() || 
+                    (isAuthenticated() && resource.data.userId == request.auth.uid) ||
+                    resource.data.donor.email == request.auth.token.email;
+      // Apenas sistema cria doações (via Cloud Function)
+      allow create: if isAdmin();
+      // Apenas admin atualiza
+      allow update: if isAdmin();
+      // Ninguém deleta
+      allow delete: if false;
+    }
+    
+    // Admins
+    match /admins/{userId} {
+      // Apenas admins podem ler lista de admins
+      allow read: if isAdmin();
+      // Apenas super admin pode criar/deletar admins
+      allow create, delete: if isAdmin() && 
+                               get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'super_admin';
+      // Admin não pode se auto-promover
+      allow update: if false;
+    }
+    
+    // Contact messages
+    match /contacts/{contactId} {
+      // Qualquer um pode criar mensagem de contato
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'message']) &&
+                      request.resource.data.name is string &&
+                      request.resource.data.email is string &&
+                      isValidEmail(request.resource.data.email) &&
+                      request.resource.data.message is string &&
+                      request.resource.data.message.size() > 10;
+      // Apenas admin pode ler/deletar
+      allow read, delete: if isAdmin();
+      // Ninguém atualiza
+      allow update: if false;
+    }
+    
+    // Settings/Config (opcional para futuras configurações)
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

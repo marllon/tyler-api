@@ -1,0 +1,11 @@
+{
+  "name": "tyler-backend",
+  "version": "1.0.0",
+  "description": "Backend Kotlin para Projeto Tyler",
+  "main": "build/libs/tyler-backend.jar",
+  "scripts": {
+    "build": "gradlew.bat build",
+    "test": "gradlew.bat test",
+    "clean": "gradlew.bat clean"
+  }
+}

@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isValidSize() {
+      return request.resource.size < 5 * 1024 * 1024; // 5MB
+    }
+    
+    // Public images (produtos, eventos, etc)
+    match /public/{allPaths=**} {
+      // Todos podem ler
+      allow read: if true;
+      // Apenas admin pode fazer upload
+      allow write: if isAdmin() && isImage() && isValidSize();
+    }
+    
+    // Product images
+    match /products/{productId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && isValidSize();
+    }
+    
+    // Event images
+    match /events/{eventId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && isValidSize();
+    }
+    
+    // Raffle images
+    match /raffles/{raffleId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && isValidSize();
+    }
+    
+    // Private/admin files
+    match /admin/{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Bloquear tudo que não foi explicitamente permitido
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
