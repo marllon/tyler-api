@@ -1,0 +1,40 @@
+# 🔑 Tyler API - Environment Variables
+
+# ===================================
+# 💳 PAGARME CONFIGURATION
+# ===================================
+
+# Pagarme Secret Key (Test Environment)
+# Obtenha sua key em: https://dashboard.pagar.me/signup
+PAGARME_API_KEY=sk_test_YOUR_SECRET_KEY_HERE
+PAGARME_SECRET_KEY_TEST=sk_test_YOUR_SECRET_KEY_HERE
+
+# ===================================
+# 🔥 FIREBASE CONFIGURATION
+# ===================================
+
+# Path para o arquivo de credenciais do Firebase
+FIREBASE_CREDENTIALS_PATH=path/to/firebase-credentials.json
+
+# ===================================
+# 🏗️ APPLICATION CONFIGURATION
+# ===================================
+
+# Spring Profile ativo
+SPRING_PROFILES_ACTIVE=dev
+
+# Porta da aplicação
+SERVER_PORT=8080
+
+# ===================================
+# 📋 INSTRUÇÃO DE USO
+# ===================================
+
+# Windows (PowerShell):
+# $env:PAGARME_API_KEY="sk_test_sua_key_aqui"
+
+# Windows (CMD):
+# set PAGARME_API_KEY=sk_test_sua_key_aqui
+
+# Linux/Mac:
+# export PAGARME_API_KEY=sk_test_sua_key_aqui

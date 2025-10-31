@@ -1,0 +1,9 @@
+{
+  "amount": 1000,
+  "description": "Teste PIX Local - CPF Válido",
+  "payer": {
+    "name": "Teste Tyler",
+    "email": "teste@tyler.com",
+    "document": "11144477735"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "amount": 1000,
+  "description": "Teste PIX Local - R$ 10,00",
+  "payer": {
+    "name": "Teste Tyler",
+    "email": "teste@tyler.com",
+    "document": "12345678901"
+  }
+}

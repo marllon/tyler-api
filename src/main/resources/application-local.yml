@@ -1,0 +1,28 @@
+# 🛠️ Profile Local - Desenvolvimento
+# Configurações para desenvolvimento local
+
+# 🔐 Token PagBank - Hardcoded para desenvolvimento
+PAGBANK_TOKEN: ""
+
+# 📝 Logging - Verbose para desenvolvimento
+logging:
+  level:
+    com.tylerproject: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# 🌐 CORS - Permissivo para desenvolvimento
+cors:
+  allowed-origins: "*"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers: "*"
+  allow-credentials: false
+
+# 📊 Actuator - Todas as métricas expostas
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

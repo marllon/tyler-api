@@ -1,0 +1,39 @@
+# 🚀 Profile Produção - Google Cloud Run
+# Configurações para ambiente de produção
+
+# � Token PagBank - Será injetado via Cloud Run do Secret Manager
+# Cloud Run irá definir essa variável automaticamente a partir do Secret Manager
+PAGBANK_TOKEN: ${PAGBANK_TOKEN}
+
+# 📝 Logging - Otimizado para produção
+logging:
+  level:
+    com.tylerproject: INFO
+    org.springframework: WARN
+    root: WARN
+  pattern:
+    console: "%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n"
+
+# 🌐 CORS - Restrito para produção
+cors:
+  allowed-origins: "https://tyler-frontend.app,https://doações.tyler.org"
+  allowed-methods: "GET,POST,OPTIONS"
+  allowed-headers: "Content-Type,Authorization"
+  allow-credentials: true
+
+# 📊 Actuator - Métricas essenciais apenas
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+  endpoint:
+    health:
+      show-details: never
+
+# 🚀 JVM Optimization para Cloud Run
+server:
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10

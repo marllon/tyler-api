@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🪙 Teste PIX - Projeto Tyler</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+      }
+
+      .header {
+        background: #00d4aa;
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 2px solid #f0f0f0;
+        border-radius: 10px;
+      }
+
+      .section h3 {
+        color: #333;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btn {
+        background: #00d4aa;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 5px;
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover {
+        background: #00b894;
+        transform: translateY(-2px);
+      }
+
+      .btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .input-group {
+        margin-bottom: 15px;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #555;
+      }
+
+      .input-group input,
+      .input-group select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      .input-group input:focus,
+      .input-group select:focus {
+        outline: none;
+        border-color: #00d4aa;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .result {
+        margin-top: 20px;
+        padding: 20px;
+        border-radius: 10px;
+      }
+
+      .success {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+
+      .error {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+
+      .qr-code {
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      .qr-code img {
+        max-width: 300px;
+        border: 3px solid #00d4aa;
+        border-radius: 10px;
+      }
+
+      .pix-code {
+        width: 100%;
+        padding: 15px;
+        margin: 10px 0;
+        border: 2px solid #00d4aa;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 12px;
+        background: #f8f9fa;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-left: 10px;
+      }
+
+      .status-pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status-approved {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #00d4aa;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .footer {
+        background: #f8f9fa;
+        padding: 20px;
+        text-align: center;
+        color: #666;
+        border-top: 1px solid #ddd;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🪙 Teste PIX Tyler</h1>
+        <p>Interface de testes para integração PIX do Projeto Tyler</p>
+      </div>
+
+      <div class="content">
+        <!-- Status da API -->
+        <div class="section">
+          <h3>🔌 Status da API</h3>
+          <p id="api-status">Verificando conexão...</p>
+          <button class="btn" onclick="checkApiStatus()">
+            Verificar Novamente
+          </button>
+        </div>
+
+        <!-- Formulário de Teste -->
+        <div class="section">
+          <h3>💳 Criar Pagamento PIX</h3>
+
+          <div class="grid">
+            <div class="input-group">
+              <label>Tipo de Pagamento:</label>
+              <select id="paymentType">
+                <option value="product">Produto</option>
+                <option value="raffle">Rifa</option>
+                <option value="donation">Doação</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label>Valor (R$):</label>
+              <input
+                type="number"
+                id="amount"
+                value="25.00"
+                step="0.01"
+                min="1"
+              />
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="input-group">
+              <label>Nome:</label>
+              <input type="text" id="customerName" value="João Teste" />
+            </div>
+
+            <div class="input-group">
+              <label>Email:</label>
+              <input
+                type="email"
+                id="customerEmail"
+                value="joao.teste@email.com"
+              />
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="input-group">
+              <label>CPF:</label>
+              <input
+                type="text"
+                id="customerDoc"
+                value="12345678901"
+                maxlength="11"
+              />
+            </div>
+
+            <div class="input-group">
+              <label>Telefone:</label>
+              <input type="text" id="customerPhone" value="11987654321" />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Descrição:</label>
+            <input
+              type="text"
+              id="description"
+              value="Teste PIX - Projeto Tyler"
+            />
+          </div>
+
+          <button class="btn" onclick="createPixPayment()" id="createBtn">
+            🚀 Criar PIX
+          </button>
+        </div>
+
+        <!-- Resultado -->
+        <div id="result" style="display: none"></div>
+      </div>
+
+      <div class="footer">
+        <p>Projeto Tyler - Sistema de Pagamento PIX</p>
+        <p>Para suporte técnico, consulte o arquivo TESTING_GUIDE.md</p>
+      </div>
+    </div>
+
+    <script>
+      let currentPaymentId = null;
+      let statusCheckInterval = null;
+
+      // Verificar status da API ao carregar
+      window.onload = function () {
+        checkApiStatus();
+      };
+
+      async function checkApiStatus() {
+        const statusElement = document.getElementById("api-status");
+        statusElement.innerHTML =
+          '<span class="loading"></span> Verificando...';
+
+        try {
+          const response = await fetch("http://localhost:8080/health", {
+            method: "GET",
+            timeout: 5000,
+          });
+
+          if (response.ok) {
+            statusElement.innerHTML = "✅ API online em localhost:8080";
+            statusElement.className = "success";
+          } else {
+            throw new Error("API retornou erro");
+          }
+        } catch (error) {
+          statusElement.innerHTML = "❌ API offline - Execute: ./gradlew run";
+          statusElement.className = "error";
+        }
+      }
+
+      async function createPixPayment() {
+        const btn = document.getElementById("createBtn");
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> Criando PIX...';
+
+        const orderData = {
+          type: document.getElementById("paymentType").value,
+          amount: parseFloat(document.getElementById("amount").value),
+          quantity: 1,
+          description: document.getElementById("description").value,
+          customer: {
+            name: document.getElementById("customerName").value,
+            lastName: "Silva",
+            email: document.getElementById("customerEmail").value,
+            document: document.getElementById("customerDoc").value,
+            phone: document.getElementById("customerPhone").value,
+          },
+        };
+
+        // Adicionar ID específico baseado no tipo
+        switch (orderData.type) {
+          case "product":
+            orderData.productId = "test-product-" + Date.now();
+            break;
+          case "raffle":
+            orderData.raffleId = "test-raffle-" + Date.now();
+            break;
+          case "donation":
+            orderData.goalId = "test-goal-" + Date.now();
+            break;
+        }
+
+        try {
+          const response = await fetch("http://localhost:8080/api/checkout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(orderData),
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            currentPaymentId = result.paymentId;
+            showSuccessResult(result);
+            startStatusChecking(result.paymentId);
+          } else {
+            showErrorResult(result.error || "Erro desconhecido");
+          }
+        } catch (error) {
+          showErrorResult("Erro de conexão: " + error.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = "🚀 Criar PIX";
+        }
+      }
+
+      function showSuccessResult(result) {
+        const resultDiv = document.getElementById("result");
+        resultDiv.style.display = "block";
+        resultDiv.className = "result success";
+        resultDiv.innerHTML = `
+                <h3>✅ PIX Criado com Sucesso!</h3>
+                
+                <div class="grid">
+                    <div>
+                        <strong>Order ID:</strong> ${result.orderId}<br>
+                        <strong>Payment ID:</strong> ${result.paymentId}<br>
+                        <strong>Valor:</strong> R$ ${result.amount.toFixed(2)}
+                    </div>
+                    <div>
+                        <strong>Status:</strong> 
+                        <span class="status-indicator status-pending" id="payment-status">Pendente</span>
+                    </div>
+                </div>
+                
+                <div class="qr-code">
+                    <h4>📱 QR Code PIX:</h4>
+                    <img src="data:image/png;base64,${
+                      result.pixQrCodeBase64
+                    }" alt="QR Code PIX">
+                </div>
+                
+                <h4>📋 Código PIX (Copiar e Colar):</h4>
+                <textarea class="pix-code" readonly onclick="this.select()">${
+                  result.pixCopyPaste
+                }</textarea>
+                
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn" onclick="copyPixCode('${
+                      result.pixCopyPaste
+                    }')">📋 Copiar Código</button>
+                    <button class="btn" onclick="checkPaymentStatus('${
+                      result.paymentId
+                    }')">🔍 Verificar Status</button>
+                    <button class="btn" onclick="simulatePayment('${
+                      result.paymentId
+                    }')">🧪 Simular Pagamento</button>
+                </div>
+                
+                <p><strong>💡 Instruções:</strong> ${result.instructions}</p>
+                
+                <div id="status-log" style="margin-top: 20px; font-size: 12px; color: #666;"></div>
+            `;
+      }
+
+      function showErrorResult(error) {
+        const resultDiv = document.getElementById("result");
+        resultDiv.style.display = "block";
+        resultDiv.className = "result error";
+        resultDiv.innerHTML = `
+                <h3>❌ Erro ao criar PIX</h3>
+                <p><strong>Erro:</strong> ${error}</p>
+                <p><strong>Soluções:</strong></p>
+                <ul>
+                    <li>Verifique se a API está rodando (localhost:8080)</li>
+                    <li>Verifique as configurações do Mercado Pago</li>
+                    <li>Verifique os logs da aplicação</li>
+                    <li>Consulte o TESTING_GUIDE.md</li>
+                </ul>
+            `;
+      }
+
+      function copyPixCode(code) {
+        navigator.clipboard
+          .writeText(code)
+          .then(() => {
+            alert("📋 Código PIX copiado para a área de transferência!");
+          })
+          .catch(() => {
+            alert("❌ Erro ao copiar. Selecione o texto manualmente.");
+          });
+      }
+
+      async function checkPaymentStatus(paymentId) {
+        try {
+          const response = await fetch(
+            `http://localhost:8080/api/payment/status/${paymentId}`
+          );
+          const result = await response.json();
+
+          updatePaymentStatus(result.status);
+
+          const logDiv = document.getElementById("status-log");
+          if (logDiv) {
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<p>[${timestamp}] Status consultado: ${result.status}</p>`;
+          }
+        } catch (error) {
+          console.error("Erro ao verificar status:", error);
+        }
+      }
+
+      function updatePaymentStatus(status) {
+        const statusElement = document.getElementById("payment-status");
+        if (statusElement) {
+          statusElement.className = "status-indicator";
+
+          switch (status) {
+            case "approved":
+            case "succeeded":
+              statusElement.className += " status-approved";
+              statusElement.textContent = "Aprovado ✅";
+              if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+              }
+              break;
+            case "cancelled":
+              statusElement.className += " status-cancelled";
+              statusElement.textContent = "Cancelado ❌";
+              break;
+            case "expired":
+              statusElement.className += " status-cancelled";
+              statusElement.textContent = "Expirado ⏰";
+              break;
+            default:
+              statusElement.className += " status-pending";
+              statusElement.textContent = "Pendente ⏳";
+          }
+        }
+      }
+
+      function startStatusChecking(paymentId) {
+        // Verificar status a cada 5 segundos
+        statusCheckInterval = setInterval(() => {
+          checkPaymentStatus(paymentId);
+        }, 5000);
+
+        // Parar após 5 minutos
+        setTimeout(() => {
+          if (statusCheckInterval) {
+            clearInterval(statusCheckInterval);
+            statusCheckInterval = null;
+          }
+        }, 300000);
+      }
+
+      async function simulatePayment(paymentId) {
+        const confirmed = confirm(
+          "🧪 Simular aprovação do pagamento?\n\nIsso irá marcar o pagamento como aprovado no ambiente de teste."
+        );
+
+        if (confirmed) {
+          try {
+            // Em um ambiente real, isso seria feito pelo Mercado Pago
+            // Aqui simulamos enviando um webhook
+            alert(
+              "🧪 Simulação iniciada! Verifique os logs da API para o webhook simulado."
+            );
+
+            // Verificar status após simulação
+            setTimeout(() => {
+              checkPaymentStatus(paymentId);
+            }, 2000);
+          } catch (error) {
+            alert("❌ Erro na simulação: " + error.message);
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

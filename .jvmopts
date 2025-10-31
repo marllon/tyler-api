@@ -1,0 +1,37 @@
+# 🚀 Tyler API - JVM Configuration for Java 21
+
+# ===================================
+# ☕ JAVA 21 OPTIMIZATIONS
+# ===================================
+
+# Virtual Threads (Project Loom)
+-Djdk.virtualThreadScheduler.parallelism=8
+-Djdk.virtualThreadScheduler.maxPoolSize=256
+
+# ZGC (Z Garbage Collector) - Low Latency
+-XX:+UseZGC
+-XX:+UnlockExperimentalVMOptions
+
+# Memory Management
+-XX:MaxRAMPercentage=75.0
+-XX:InitialRAMPercentage=50.0
+
+# JIT Compilation
+-XX:+UseStringDeduplication
+-XX:+OptimizeStringConcat
+
+# Performance Monitoring
+-XX:+FlightRecorder
+-XX:StartFlightRecording=duration=60s,filename=tyler-api.jfr
+
+# Container Support
+-XX:+UseContainerSupport
+-XX:MaxRAMPercentage=75.0
+
+# Development Mode
+-Dspring.devtools.restart.enabled=true
+-Dspring.devtools.livereload.enabled=true
+
+# Debugging
+-Xdebug
+-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005

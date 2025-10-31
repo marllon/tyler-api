@@ -1,0 +1,67 @@
+# ========================================
+# 🏦 TYLER API - GITIGNORE
+# ========================================
+
+# 🚫 Arquivos de ambiente (SEGURANÇA)
+.env
+.env.local
+.env.production
+.env.development
+*.env
+
+# 🔑 Credenciais (NUNCA COMMITTAR)
+**/secrets/
+**/credentials/
+**/*-key.json
+**/*-credentials.json
+
+# ☁️ Maven
+target/
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# 💻 IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.metadata/
+.project
+.classpath
+.settings/
+
+# 📱 OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 📊 Logs
+*.log
+logs/
+log/
+
+# 🔧 Temporary files
+*.tmp
+*.temp
+*.swp
+*.bak
+
+# 🐳 Docker
+Dockerfile.local
+docker-compose.override.yml
+
+# 📦 Build artifacts
+*.jar
+*.war
+*.ear
+*.class
+
+# 🧪 Test reports
+test-results/
+coverage/
+
+# 🎯 Tyler API específicos
+pagbank-config.json
+payment-logs/
+transaction-backup/
