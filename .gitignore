@@ -9,6 +9,8 @@
 .env.development
 *.env
 
+config/firebase-admin-sdk.json
+
 # 🔑 Credenciais (NUNCA COMMITTAR)
 **/secrets/
 **/credentials/
