@@ -1,0 +1,9 @@
+{
+  "amount": 1000,
+  "description": "Doação de teste via Tyler API",
+  "payer": {
+    "name": "João Silva",
+    "email": "joao@teste.com",
+    "document": "12345678901"
+  }
+}

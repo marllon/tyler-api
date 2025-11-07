@@ -1,16 +1,19 @@
 package com.tylerproject.config
 
+import com.tylerproject.providers.PagBankProvider
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 /**
- * 🔐 Configuração de Tokens PagBank
+ * 🔐 Configuração de Tokens e Providers
  *
- * Bean único que sempre pega da variável de ambiente PAGBANK_TOKEN.
+ * Bean único que sempre pega da variável de ambiente PAGBANK_TOKEN. Configura PagBankProvider com
+ * injeção de dependências.
  *
  * Como a variável é populada:
- * - 🛠️ Local: Via YAML (hardcoded para desenvolvimento)
+ * - 🛠️ Local: Via application.yml (hardcoded para desenvolvimento)
  * - 🚀 Produção: Via Secret Manager (injetado no ambiente Cloud Run)
  */
 @Configuration
@@ -24,7 +27,16 @@ class TokenConfiguration {
      * - Produção: Cloud Run injeta via Secret Manager
      */
     @Bean("pagbankToken")
-    fun pagBankToken(@Value("\${PAGBANK_TOKEN}") token: String): String {
+    fun pagBankToken(@Value("\${pagbank.token}") token: String): String {
         return token
+    }
+
+    /** 🏦 PagBank Provider configurado com ApplicationContext */
+    @Bean
+    fun pagBankProvider(
+            @Value("\${pagbank.token}") token: String,
+            applicationContext: ApplicationContext
+    ): PagBankProvider {
+        return PagBankProvider(token, applicationContext)
     }
 }

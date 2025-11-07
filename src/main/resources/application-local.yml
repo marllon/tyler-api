@@ -1,8 +1,15 @@
 # 🛠️ Profile Local - Desenvolvimento
 # Configurações para desenvolvimento local
 
-# 🔐 Token PagBank - Hardcoded para desenvolvimento
-PAGBANK_TOKEN: ""
+# � PagBank Configuration (Sandbox)
+pagbank:
+  token: "SEU_TOKEN_PAGBANK_SANDBOX_AQUI"
+  webhook-url: "http://localhost:8080/api/payments/webhook"
+
+# 🔐 Firebase Configuration (Local)
+firebase:
+  service-account-key: "config/firebase-admin-sdk.json"
+  project-id: "tyler-project-dev"
 
 # 📝 Logging - Verbose para desenvolvimento
 logging:
@@ -14,11 +21,13 @@ logging:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
 # 🌐 CORS - Permissivo para desenvolvimento
-cors:
-  allowed-origins: "*"
-  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
-  allowed-headers: "*"
-  allow-credentials: false
+spring:
+  web:
+    cors:
+      allowed-origins: "http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000"
+      allowed-methods: "*"
+      allowed-headers: "*"
+      allow-credentials: true
 
 # 📊 Actuator - Todas as métricas expostas
 management:
@@ -26,3 +35,6 @@ management:
     web:
       exposure:
         include: "*"
+  endpoint:
+    health:
+      show-details: always

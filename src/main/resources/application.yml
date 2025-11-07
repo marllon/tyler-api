@@ -8,18 +8,27 @@ spring:
   application:
     name: tyler-api
 
-  # 🔧 JPA/Hibernate (se necessário para Firestore)
+  # 🔧 JPA/Hibernate (desabilitado - usando Firestore)
   jpa:
     show-sql: false
     hibernate:
       ddl-auto: none
+
+  # 🌐 CORS Configuration
+  web:
+    cors:
+      allowed-origins: "*"
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+      allowed-headers: "*"
+      allow-credentials: false
 
 # 📊 Actuator - Monitoramento
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
+      base-path: /actuator
   endpoint:
     health:
       show-details: when-authorized
@@ -28,4 +37,22 @@ management:
 server:
   port: 8080
   servlet:
-    context-path: /api
+    context-path: /
+
+# 🔐 Firebase Configuration
+firebase:
+  service-account-key: config/firebase-admin-sdk.json
+  project-id: ${FIREBASE_PROJECT_ID:tyler-project-dev}
+
+# 💳 Payment Configuration
+pagbank:
+  token: ${PAGBANK_TOKEN:}
+  webhook-url: ${PAGBANK_WEBHOOK_URL:https://tyler-api.herokuapp.com/api/payments/webhook}
+
+# 📝 Logging Configuration
+logging:
+  level:
+    com.tylerproject: INFO
+    org.springframework.web: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
