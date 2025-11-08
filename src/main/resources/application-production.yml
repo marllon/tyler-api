@@ -1,9 +1,11 @@
 # 🚀 Profile Produção - Google Cloud Run
 # Configurações para ambiente de produção
 
-# � Token PagBank - Será injetado via Cloud Run do Secret Manager
-# Cloud Run irá definir essa variável automaticamente a partir do Secret Manager
 PAGBANK_TOKEN: ${PAGBANK_TOKEN}
+
+firebase:
+  project-id: tyler-prd
+  service-account-key: firebase-admin-sdk.json
 
 # 📝 Logging - Otimizado para produção
 logging:

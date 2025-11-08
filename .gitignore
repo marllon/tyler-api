@@ -67,3 +67,7 @@ coverage/
 pagbank-config.json
 payment-logs/
 transaction-backup/
+
+
+firebase-admin-sdk.json
+**/firebase-admin-sdk.json

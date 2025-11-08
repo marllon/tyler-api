@@ -1,0 +1,8 @@
+{
+  "name": "Smartphone Samsung Galaxy S24",
+  "description": "Smartphone Android flagship com 256GB",
+  "price": 1899.99,
+  "category": "Eletronicos", 
+  "stock": 50,
+  "active": true
+}

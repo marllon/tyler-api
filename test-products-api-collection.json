@@ -1,0 +1,197 @@
+{
+  "info": {
+    "name": "Tyler API - CRUD Produtos",
+    "description": "Testes completos da API de produtos com Clean Architecture",
+    "version": "1.0.0"
+  },
+  "baseUrl": "http://localhost:8080/api",
+  "tests": [
+    {
+      "name": "Health Check",
+      "method": "GET",
+      "url": "{{baseUrl}}/health",
+      "expected": 200
+    },
+    {
+      "name": "Criar Produto 1",
+      "method": "POST", 
+      "url": "{{baseUrl}}/products",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Smartphone Samsung Galaxy S24",
+        "description": "Smartphone Android flagship com 256GB de armazenamento",
+        "price": 1899.99,
+        "category": "Eletronicos",
+        "stock": 50,
+        "active": true,
+        "brand": "Samsung",
+        "model": "Galaxy S24",
+        "weight": 0.195,
+        "dimensions": "14.7 x 7.1 x 0.79 cm",
+        "color": "Phantom Black",
+        "warranty": 12,
+        "tags": ["smartphone", "android", "5g", "flagship"]
+      },
+      "expected": 201
+    },
+    {
+      "name": "Criar Produto 2",
+      "method": "POST",
+      "url": "{{baseUrl}}/products", 
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Notebook Dell XPS 13",
+        "description": "Notebook premium para desenvolvedores e profissionais",
+        "price": 3499.90,
+        "category": "Informatica",
+        "stock": 25,
+        "active": true,
+        "brand": "Dell",
+        "model": "XPS 13",
+        "weight": 1.2,
+        "dimensions": "29.6 x 19.9 x 1.49 cm",
+        "color": "Silver",
+        "warranty": 24,
+        "tags": ["notebook", "premium", "desenvolvedor", "ultrabook"]
+      },
+      "expected": 201
+    },
+    {
+      "name": "Criar Produto 3", 
+      "method": "POST",
+      "url": "{{baseUrl}}/products",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Fone Sony WH-1000XM5",
+        "description": "Fone de ouvido premium com cancelamento de ruído ativo",
+        "price": 799.90,
+        "category": "Audio",
+        "stock": 100,
+        "active": true,
+        "brand": "Sony",
+        "model": "WH-1000XM5",
+        "weight": 0.25,
+        "dimensions": "26.4 x 19.3 x 7.3 cm",
+        "color": "Black",
+        "warranty": 12,
+        "tags": ["fone", "bluetooth", "noise-canceling", "premium"]
+      },
+      "expected": 201
+    },
+    {
+      "name": "Listar Produtos (Paginação)",
+      "method": "GET",
+      "url": "{{baseUrl}}/products?page=1&pageSize=10",
+      "expected": 200,
+      "description": "Testa listagem com paginação"
+    },
+    {
+      "name": "Buscar por Categoria",
+      "method": "GET", 
+      "url": "{{baseUrl}}/products?category=Eletronicos&page=1&pageSize=5",
+      "expected": 200,
+      "description": "Testa filtro por categoria"
+    },
+    {
+      "name": "Produtos Ativos Apenas",
+      "method": "GET",
+      "url": "{{baseUrl}}/products?activeOnly=true",
+      "expected": 200,
+      "description": "Testa filtro por status ativo"
+    },
+    {
+      "name": "Buscar Produto por ID",
+      "method": "GET",
+      "url": "{{baseUrl}}/products/{{productId}}",
+      "expected": 200,
+      "description": "Usar ID de um produto criado anteriormente"
+    },
+    {
+      "name": "Atualizar Produto",
+      "method": "PUT",
+      "url": "{{baseUrl}}/products/{{productId}}",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "name": "Smartphone Samsung Galaxy S24 ATUALIZADO",
+        "description": "Smartphone Android flagship com 512GB - VERSÃO PREMIUM",
+        "price": 2299.99,
+        "category": "Eletronicos", 
+        "stock": 75,
+        "brand": "Samsung",
+        "model": "Galaxy S24 Ultra",
+        "weight": 0.233,
+        "color": "Titanium Gray",
+        "warranty": 24,
+        "tags": ["smartphone", "android", "5g", "ultra", "premium"]
+      },
+      "expected": 200,
+      "description": "Usar ID de um produto existente"
+    },
+    {
+      "name": "Verificar Atualização",
+      "method": "GET",
+      "url": "{{baseUrl}}/products/{{productId}}",
+      "expected": 200,
+      "description": "Confirma que produto foi atualizado"
+    },
+    {
+      "name": "Deletar Produto",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/products/{{productId}}",
+      "expected": 200,
+      "description": "Remove produto do sistema"
+    },
+    {
+      "name": "Verificar Deleção",
+      "method": "GET", 
+      "url": "{{baseUrl}}/products/{{productId}}",
+      "expected": 404,
+      "description": "Confirma que produto foi removido"
+    },
+    {
+      "name": "Listagem Final",
+      "method": "GET",
+      "url": "{{baseUrl}}/products?page=1&pageSize=10",
+      "expected": 200,
+      "description": "Verifica estado final dos produtos"
+    }
+  ],
+  "validationChecks": {
+    "createProduct": [
+      "Response contains 'id' field",
+      "Response contains 'name' field matching request",
+      "Response contains 'createdAt' timestamp",
+      "Status code is 201"
+    ],
+    "listProducts": [
+      "Response contains 'products' array",
+      "Response contains 'totalProducts' count",
+      "Response contains 'currentPage' info",
+      "Response contains 'totalPages' info",
+      "Status code is 200"
+    ],
+    "getProduct": [
+      "Response contains all product fields",
+      "Product ID matches request",
+      "Status code is 200"
+    ],
+    "updateProduct": [
+      "Updated fields match request values", 
+      "updatedAt timestamp is recent",
+      "Status code is 200"
+    ],
+    "deleteProduct": [
+      "Response contains success message",
+      "Product ID matches request",
+      "Status code is 200"
+    ]
+  }
+}

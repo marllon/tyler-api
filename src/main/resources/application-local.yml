@@ -6,10 +6,9 @@ pagbank:
   token: "SEU_TOKEN_PAGBANK_SANDBOX_AQUI"
   webhook-url: "http://localhost:8080/api/payments/webhook"
 
-# 🔐 Firebase Configuration (Local)
 firebase:
-  service-account-key: "config/firebase-admin-sdk.json"
-  project-id: "tyler-project-dev"
+  project-id: tyler-dev-c2420
+  service-account-key: firebase-admin-sdk.json
 
 # 📝 Logging - Verbose para desenvolvimento
 logging:

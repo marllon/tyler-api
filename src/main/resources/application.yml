@@ -1,10 +1,6 @@
-# 🌟 Configuração Principal Tyler API
-# Spring Boot YAML Configuration
-
 spring:
   profiles:
     active: local
-
   application:
     name: tyler-api
 
@@ -39,10 +35,9 @@ server:
   servlet:
     context-path: /
 
-# 🔐 Firebase Configuration
 firebase:
-  service-account-key: config/firebase-admin-sdk.json
-  project-id: ${FIREBASE_PROJECT_ID:tyler-project-dev}
+  project-id: tyler-dev-c2420
+  service-account-key: firebase-admin-sdk.json
 
 # 💳 Payment Configuration
 pagbank:
