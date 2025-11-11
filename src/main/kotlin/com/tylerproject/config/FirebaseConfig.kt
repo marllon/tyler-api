@@ -20,18 +20,18 @@ class FirebaseConfig {
     @Value("\${firebase.service-account-key:firebase-admin-sdk.json}")
     private lateinit var serviceAccountKeyPath: String
 
-    @Value("\${firebase.project-id:tyler-dev}")
-    private lateinit var firebaseProjectId: String
+    @Value("\${firebase.project-id:tyler-dev}") private lateinit var firebaseProjectId: String
 
     @Bean
     fun firebaseApp(): FirebaseApp? {
         return try {
             if (FirebaseApp.getApps().isEmpty()) {
                 val serviceAccount = ClassPathResource(serviceAccountKeyPath).inputStream
-                val options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setProjectId(firebaseProjectId)
-                    .build()
+                val options =
+                        FirebaseOptions.builder()
+                                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                                .setProjectId(firebaseProjectId)
+                                .build()
 
                 val app = FirebaseApp.initializeApp(options)
                 logger.info("Firebase inicializado com sucesso - Projeto: $firebaseProjectId")

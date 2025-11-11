@@ -10,7 +10,14 @@ firebase:
   project-id: tyler-dev-c2420
   service-account-key: firebase-admin-sdk.json
 
-# 📝 Logging - Verbose para desenvolvimento
+# �️ Google Cloud Storage - Development
+app:
+  gcp:
+    project-id: tyler-dev-c2420
+    bucket-name: tyler-product-images
+    storage-credentials-path: tyler-storage-credentials.json
+
+# �📝 Logging - Verbose para desenvolvimento
 logging:
   level:
     com.tylerproject: DEBUG

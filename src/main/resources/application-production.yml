@@ -7,7 +7,14 @@ firebase:
   project-id: tyler-prd
   service-account-key: firebase-admin-sdk.json
 
-# 📝 Logging - Otimizado para produção
+# �️ Google Cloud Storage - Production
+app:
+  gcp:
+    project-id: tyler-prd
+    bucket-name: tyler-product-images-prd
+    storage-credentials-path: tyler-storage-credentials-prd.json
+
+# �📝 Logging - Otimizado para produção
 logging:
   level:
     com.tylerproject: INFO

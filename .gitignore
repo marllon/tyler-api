@@ -16,6 +16,8 @@ config/firebase-admin-sdk.json
 **/credentials/
 **/*-key.json
 **/*-credentials.json
+tyler-storage-credentials.json
+tyler-storage-credentials-*.json
 
 # ☁️ Maven
 target/

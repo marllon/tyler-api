@@ -1,5 +1,6 @@
 package com.tylerproject.domain.product
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -9,8 +10,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/api/products")
@@ -93,6 +96,85 @@ class ProductController(private val productService: ProductService) {
         }
     }
 
+    @GetMapping("/paginated")
+    @Operation(
+            summary = "Listar produtos (cursor pagination)",
+            description =
+                    "✅ Versão otimizada para NoSQL com cursor-based pagination. Melhor performance que paginação tradicional."
+    )
+    @ApiResponses(
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "200",
+                                    description = "Lista de produtos com cursor pagination",
+                                    content =
+                                            [
+                                                    Content(
+                                                            mediaType = "application/json",
+                                                            schema =
+                                                                    Schema(
+                                                                            implementation =
+                                                                                    ProductPageResponse::class
+                                                                    )
+                                                    )]
+                            ),
+                            ApiResponse(responseCode = "400", description = "Parâmetros inválidos"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Erro interno do servidor"
+                            )]
+    )
+    fun getProductsPaginated(
+            @Parameter(description = "Quantidade de itens por página", example = "20")
+            @RequestParam(defaultValue = "20")
+            limit: Int,
+            @Parameter(
+                    description = "Cursor para próxima/anterior página",
+                    example = "product_id_123"
+            )
+            @RequestParam(required = false)
+            cursor: String?,
+            @Parameter(description = "Direção da paginação", example = "NEXT")
+            @RequestParam(defaultValue = "NEXT")
+            direction: com.tylerproject.infrastructure.repository.PageDirection,
+            @Parameter(description = "Campo de ordenação", example = "CREATED_AT")
+            @RequestParam(defaultValue = "CREATED_AT")
+            sortBy: ProductSortField,
+            @Parameter(description = "Direção da ordenação", example = "DESC")
+            @RequestParam(defaultValue = "DESC")
+            sortDirection: com.tylerproject.infrastructure.repository.SortDirection,
+            @Parameter(description = "Filtrar apenas produtos ativos", example = "true")
+            @RequestParam(defaultValue = "true")
+            activeOnly: Boolean,
+            @Parameter(description = "Filtrar por categoria", example = "smartphones")
+            @RequestParam(required = false)
+            category: String?
+    ): ResponseEntity<ProductPageResponse> {
+        return try {
+            logger.info("Getting products with cursor pagination - limit: $limit, cursor: $cursor")
+
+            val response =
+                    productService.getProductsPaginated(
+                            limit,
+                            cursor,
+                            direction,
+                            sortBy,
+                            sortDirection,
+                            activeOnly,
+                            category
+                    )
+
+            ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Invalid pagination parameters: ${e.message}", e)
+            ResponseEntity.badRequest().build()
+        } catch (e: Exception) {
+            logger.error("Error getting paginated products: ${e.message}", e)
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
+        }
+    }
+
     @PostMapping
     @Operation(
             summary = "Create new product",
@@ -133,6 +215,65 @@ class ProductController(private val productService: ProductService) {
             ResponseEntity.status(HttpStatus.CREATED).body(product)
         } catch (e: Exception) {
             logger.error("Error creating product: ${e.message}", e)
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
+        }
+    }
+
+    @PostMapping("/with-images", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @Operation(
+            summary = "Create product with images",
+            description =
+                    "Creates a new product with uploaded images. At least one image is required."
+    )
+    @ApiResponses(
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "201",
+                                    description = "Product created successfully with images",
+                                    content =
+                                            [
+                                                    Content(
+                                                            mediaType = "application/json",
+                                                            schema =
+                                                                    Schema(
+                                                                            implementation =
+                                                                                    ProductResponse::class
+                                                                    )
+                                                    )]
+                            ),
+                            ApiResponse(
+                                    responseCode = "400",
+                                    description = "Invalid request data or image files"
+                            ),
+                            ApiResponse(responseCode = "413", description = "File size too large"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Internal server error"
+                            )]
+    )
+    fun createProductWithImages(
+            @RequestParam("productData")
+            @Parameter(description = "Product data as JSON string", required = true)
+            productDataJson: String,
+            @RequestParam("images")
+            @Parameter(description = "Product images (max 10 files, 10MB each)", required = true)
+            images: Array<MultipartFile>
+    ): ResponseEntity<ProductResponse> {
+        return try {
+            val objectMapper = ObjectMapper()
+            val request =
+                    objectMapper.readValue(productDataJson, ProductWithImagesRequest::class.java)
+
+            logger.info("Creating product with images: ${request.name} - ${images.size} images")
+
+            val product = productService.createProductWithImages(request, images)
+            ResponseEntity.status(HttpStatus.CREATED).body(product)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Invalid request for product with images: ${e.message}", e)
+            ResponseEntity.badRequest().build()
+        } catch (e: Exception) {
+            logger.error("Error creating product with images: ${e.message}", e)
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
         }
     }
