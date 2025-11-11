@@ -22,22 +22,29 @@ class ProductController(private val productService: ProductService) {
 
     @GetMapping
     @Operation(
-        summary = "Listar produtos",
-        description = "Retorna lista paginada de produtos com filtros opcionais"
+            summary = "Listar produtos",
+            description = "Retorna lista paginada de produtos com filtros opcionais"
     )
     @ApiResponses(
-        ApiResponse(responseCode = "200", description = "Lista de produtos retornada com sucesso"),
-        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+            ApiResponse(
+                    responseCode = "200",
+                    description = "Lista de produtos retornada com sucesso"
+            ),
+            ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
     fun getAllProducts(
             @Parameter(description = "Número da página (inicia em 1)", example = "1")
-            @RequestParam(defaultValue = "1") page: Int,
+            @RequestParam(defaultValue = "1")
+            page: Int,
             @Parameter(description = "Quantidade de itens por página", example = "10")
-            @RequestParam(defaultValue = "10") pageSize: Int,
+            @RequestParam(defaultValue = "10")
+            pageSize: Int,
             @Parameter(description = "Filtrar apenas produtos ativos", example = "true")
-            @RequestParam(defaultValue = "true") activeOnly: Boolean,
+            @RequestParam(defaultValue = "true")
+            activeOnly: Boolean,
             @Parameter(description = "Filtrar por categoria específica", example = "Eletronicos")
-            @RequestParam(required = false) category: String?
+            @RequestParam(required = false)
+            category: String?
     ): ResponseEntity<ProductListResponse> {
         return try {
             logger.info(
@@ -54,17 +61,21 @@ class ProductController(private val productService: ProductService) {
 
     @GetMapping("/{id}")
     @Operation(
-        summary = "Buscar produto por ID",
-        description = "Retorna um produto específico pelo seu identificador único"
+            summary = "Buscar produto por ID",
+            description = "Retorna um produto específico pelo seu identificador único"
     )
     @ApiResponses(
-        ApiResponse(responseCode = "200", description = "Produto encontrado"),
-        ApiResponse(responseCode = "404", description = "Produto não encontrado"),
-        ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+            ApiResponse(responseCode = "200", description = "Produto encontrado"),
+            ApiResponse(responseCode = "404", description = "Produto não encontrado"),
+            ApiResponse(responseCode = "500", description = "Erro interno do servidor")
     )
     fun getProductById(
-        @Parameter(description = "ID único do produto", example = "550e8400-e29b-41d4-a716-446655440000")
-        @PathVariable id: String
+            @Parameter(
+                    description = "ID único do produto",
+                    example = "550e8400-e29b-41d4-a716-446655440000"
+            )
+            @PathVariable
+            id: String
     ): ResponseEntity<ProductResponse> {
         return try {
             logger.info("Getting product by id: $id")
@@ -84,32 +95,36 @@ class ProductController(private val productService: ProductService) {
 
     @PostMapping
     @Operation(
-        summary = "Create new product",
-        description = "Creates a new product with the provided information"
+            summary = "Create new product",
+            description = "Creates a new product with the provided information"
     )
     @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "201",
-                description = "Product created successfully",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ProductResponse::class)
-                )]
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "Invalid request data"
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "Internal server error"
-            )
-        ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "201",
+                                    description = "Product created successfully",
+                                    content =
+                                            [
+                                                    Content(
+                                                            mediaType = "application/json",
+                                                            schema =
+                                                                    Schema(
+                                                                            implementation =
+                                                                                    ProductResponse::class
+                                                                    )
+                                                    )]
+                            ),
+                            ApiResponse(responseCode = "400", description = "Invalid request data"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Internal server error"
+                            )]
     )
     fun createProduct(
-        @RequestBody @Parameter(description = "Product creation data", required = true)
-        request: CreateProductRequest
+            @RequestBody
+            @Parameter(description = "Product creation data", required = true)
+            request: CreateProductRequest
     ): ResponseEntity<ProductResponse> {
         return try {
             logger.info("Creating product: ${request.name}")
@@ -124,36 +139,38 @@ class ProductController(private val productService: ProductService) {
 
     @PutMapping("/{id}")
     @Operation(
-        summary = "Update existing product",
-        description = "Updates an existing product with the provided information"
+            summary = "Update existing product",
+            description = "Updates an existing product with the provided information"
     )
     @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Product updated successfully",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ProductResponse::class)
-                )]
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "Product not found"
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "Invalid request data"
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "Internal server error"
-            )
-        ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "200",
+                                    description = "Product updated successfully",
+                                    content =
+                                            [
+                                                    Content(
+                                                            mediaType = "application/json",
+                                                            schema =
+                                                                    Schema(
+                                                                            implementation =
+                                                                                    ProductResponse::class
+                                                                    )
+                                                    )]
+                            ),
+                            ApiResponse(responseCode = "404", description = "Product not found"),
+                            ApiResponse(responseCode = "400", description = "Invalid request data"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Internal server error"
+                            )]
     )
     fun updateProduct(
             @PathVariable @Parameter(description = "Product ID", required = true) id: String,
-            @RequestBody @Parameter(description = "Product update data", required = true) request: UpdateProductRequest
+            @RequestBody
+            @Parameter(description = "Product update data", required = true)
+            request: UpdateProductRequest
     ): ResponseEntity<ProductResponse> {
         return try {
             logger.info("Updating product: $id")
@@ -172,32 +189,34 @@ class ProductController(private val productService: ProductService) {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(
-        summary = "Delete product",
-        description = "Deletes an existing product by its ID"
-    )
+    @Operation(summary = "Delete product", description = "Deletes an existing product by its ID")
     @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Product deleted successfully",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = ProductDeletedResponse::class)
-                )]
-            ),
-            ApiResponse(
-                responseCode = "404",
-                description = "Product not found"
-            ),
-            ApiResponse(
-                responseCode = "500",
-                description = "Internal server error"
-            )
-        ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "200",
+                                    description = "Product deleted successfully",
+                                    content =
+                                            [
+                                                    Content(
+                                                            mediaType = "application/json",
+                                                            schema =
+                                                                    Schema(
+                                                                            implementation =
+                                                                                    ProductDeletedResponse::class
+                                                                    )
+                                                    )]
+                            ),
+                            ApiResponse(responseCode = "404", description = "Product not found"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Internal server error"
+                            )]
     )
     fun deleteProduct(
-        @PathVariable @Parameter(description = "Product ID to delete", required = true) id: String
+            @PathVariable
+            @Parameter(description = "Product ID to delete", required = true)
+            id: String
     ): ResponseEntity<ProductDeletedResponse> {
         return try {
             logger.info("Deleting product: $id")
