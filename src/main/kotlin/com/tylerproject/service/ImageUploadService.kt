@@ -3,6 +3,8 @@ package com.tylerproject.service
 import com.google.cloud.storage.BlobId
 import com.google.cloud.storage.BlobInfo
 import com.google.cloud.storage.Storage
+import com.tylerproject.domain.event.EventImage
+import com.tylerproject.domain.event.EventImageUploadResponse
 import com.tylerproject.domain.product.ImageUploadResponse
 import com.tylerproject.domain.product.ProductImage
 import java.io.IOException
@@ -46,6 +48,19 @@ class ImageUploadService(
         }
     }
 
+    fun uploadEventImages(
+        eventId: String,
+        files: Array<MultipartFile>,
+        primaryImageIndex: Int = 0
+    ): List<EventImage> {
+        validateFiles(files, primaryImageIndex)
+
+        return files.mapIndexed { index, file ->
+            val isPrimary = index == primaryImageIndex
+            uploadSingleImageEvent(eventId, file, isPrimary)
+        }
+    }
+
     /** Upload de uma única imagem */
     fun uploadSingleImage(
             productId: String,
@@ -84,6 +99,47 @@ class ImageUploadService(
             )
         } catch (e: Exception) {
             logger.error("Error uploading image for product $productId: ${e.message}", e)
+            throw IOException("Failed to upload image: ${e.message}", e)
+        }
+    }
+
+    fun uploadSingleImageEvent(
+        eventId: String,
+        file: MultipartFile,
+        isPrimary: Boolean = false
+    ): EventImage {
+        try {
+            val filename = generateUniqueFilename(eventId, file.originalFilename ?: "image")
+            val objectPath = "event/$eventId/images/$filename"
+
+            logger.info("Uploading image: $filename for event: $eventId")
+
+            val blobId = BlobId.of(bucketName, objectPath)
+            val blobInfo =
+                BlobInfo.newBuilder(blobId)
+                    .setContentType(file.contentType)
+                    .setCacheControl("public, max-age=31536000") // 1 year cache
+                    .build()
+
+            // Upload para Google Cloud Storage
+            storage.create(blobInfo, file.bytes)
+
+            // Gerar Signed URL (válida por 7 dias)
+            val signedUrl = generateSignedUrl(objectPath)
+
+            logger.info("Image uploaded successfully with signed URL generated")
+
+            return EventImage(
+                id = UUID.randomUUID().toString(),
+                url = signedUrl,
+                filename = filename,
+                contentType = file.contentType ?: "application/octet-stream",
+                size = file.size,
+                isPrimary = isPrimary,
+                uploadedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            )
+        } catch (e: Exception) {
+            logger.error("Error uploading image for event $eventId: ${e.message}", e)
             throw IOException("Failed to upload image: ${e.message}", e)
         }
     }
@@ -136,6 +192,17 @@ class ImageUploadService(
                 contentType = image.contentType,
                 size = image.size,
                 isPrimary = image.isPrimary
+        )
+    }
+
+    fun toImageUploadResponseEvent(image: EventImage): EventImageUploadResponse {
+        return EventImageUploadResponse(
+            id = image.id,
+            url = image.url,
+            filename = image.filename,
+            contentType = image.contentType,
+            size = image.size,
+            isPrimary = image.isPrimary
         )
     }
 
