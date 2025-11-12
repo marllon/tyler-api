@@ -18,6 +18,14 @@ spring:
       allowed-headers: "*"
       allow-credentials: false
 
+  # 📁 File Upload Configuration  
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
+      file-size-threshold: 2KB
+
 # 📊 Actuator - Monitoramento
 management:
   endpoints:
@@ -42,19 +50,12 @@ firebase:
 # 🗂️ Google Cloud Storage Configuration
 app:
   gcp:
-    project-id: ${GCP_PROJECT_ID:tyler-dev-c2420}
-    bucket-name: ${GCP_BUCKET_NAME:tyler-product-images}
+    project-id: ${GCP_PROJECT_ID:tyler-dev}
+    bucket-name: ${GCP_BUCKET_NAME:tyler-products-images-dev}
     storage-credentials-path: ${GCP_STORAGE_CREDENTIALS_PATH:tyler-storage-credentials.json}
     base-url: https://storage.googleapis.com
 
-# 📁 File Upload Configuration  
-spring:
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 10MB
-      max-request-size: 50MB
-      file-size-threshold: 2KB
+
 
 # �💳 Payment Configuration
 pagbank:
