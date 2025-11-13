@@ -1,5 +1,4 @@
 package com.tylerproject.providers
-
 import com.tylerproject.models.*
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -16,47 +15,23 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
-
-/**
- * 🏦 PagBank Provider - API OFICIAL REAL (ATUALIZADO)
- *
- * Features:
- * - ✅ API oficial PagBank (Orders API)
- * - ✅ Aceita CPF (não precisa CNPJ)
- * - ✅ PIX com boa taxa
- * - ✅ Ideal para caridade e doações
- * - ✅ Sandbox → Homologação → Produção
- * - ✅ Suporte a reference_id com prefixos (donation_, order_, raffle_)
- * - ✅ Webhook integrado com services
- *
- * Documentação: https://developer.pagbank.com.br/
- */
 @Component
 class PagBankProvider(
         private val token: String,
         @Autowired private val applicationContext: ApplicationContext
 ) {
-
     companion object {
-        // URLs OFICIAIS da API PagBank
         private const val SANDBOX_URL = "https://sandbox.api.pagseguro.com"
         private const val PRODUCTION_URL = "https://api.pagseguro.com"
     }
-
     private val logger = LoggerFactory.getLogger(PagBankProvider::class.java)
     private val client = OkHttpClient()
-
-    // 🛠️ Para desenvolvimento, sempre usar SANDBOX
-    // TODO: Em produção, detectar automaticamente baseado no token
     private val baseUrl = SANDBOX_URL
-
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
         encodeDefaults = true // ✅ Incluir valores padrão (quantity = 1)
     }
-
-    /** 🔐 Headers para autenticação PagBank */
     private fun getAuthHeaders(): Headers {
         return Headers.Builder()
                 .add("Authorization", "Bearer $token")
@@ -64,14 +39,10 @@ class PagBankProvider(
                 .add("Accept", "application/json")
                 .build()
     }
-
-    /** 🎁 Criar Order PIX para DOAÇÃO - API OFICIAL */
     suspend fun createPixTransaction(request: Map<String, Any>): Map<String, Any> =
             withContext(Dispatchers.IO) {
                 try {
                     logger.info("🏦 Criando doação PIX via PagBank API oficial")
-
-                    // Extrair dados do request
                     val amount =
                             (request["amount"] as? Number)?.toLong()
                                     ?: throw IllegalArgumentException("Valor inválido")
@@ -80,7 +51,6 @@ class PagBankProvider(
                     val payerMap =
                             request["payer"] as? Map<String, Any>
                                     ?: throw IllegalArgumentException("Dados do doador inválidos")
-
                     val payerName =
                             payerMap["name"] as? String
                                     ?: throw IllegalArgumentException("Nome do doador inválido")
@@ -90,19 +60,13 @@ class PagBankProvider(
                     val payerDocument =
                             payerMap["document"] as? String
                                     ?: throw IllegalArgumentException("CPF do doador inválido")
-
-                    // Gerar IDs únicos
                     val referenceId = "DOA_${System.currentTimeMillis()}"
                     val itemId = "ITEM_${System.currentTimeMillis()}"
-
-                    // Data de expiração PIX (24 horas)
                     val expirationDate =
                             LocalDateTime.now()
                                     .plusHours(24)
                                     .atOffset(ZoneOffset.of("-03:00"))
                                     .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-
-                    // Criar payload para PagBank (Orders API com QR_CODES para PIX)
                     val pagBankRequest =
                             PagBankOrderRequest(
                                     reference_id = referenceId,
@@ -125,7 +89,6 @@ class PagBankProvider(
                                                             unit_amount = amount
                                                     )
                                             ),
-                                    // ✅ PIX usa QR_CODES, não CHARGES!
                                     qr_codes =
                                             listOf(
                                                     PagBankQrCode(
@@ -134,38 +97,28 @@ class PagBankProvider(
                                                     )
                                             )
                             )
-
                     val requestBody =
                             json.encodeToString(pagBankRequest)
                                     .toRequestBody("application/json".toMediaType())
-
                     val httpRequest =
                             Request.Builder()
                                     .url("$baseUrl/orders")
                                     .headers(getAuthHeaders())
                                     .post(requestBody)
                                     .build()
-
                     logger.info("📤 Enviando request para PagBank Orders API")
                     logger.debug("🔍 Payload: ${json.encodeToString(pagBankRequest)}")
-
                     val response = client.newCall(httpRequest).execute()
                     val responseBody = response.body?.string() ?: ""
-
                     logger.info("📥 Response PagBank [${response.code}]: $responseBody")
-
                     if (response.isSuccessful) {
                         try {
                             val pagBankResponse =
                                     json.decodeFromString<PagBankOrderResponse>(responseBody)
-
-                            // Para PIX, usar qr_codes ao invés de charges
                             val qrCode = pagBankResponse.qr_codes?.firstOrNull()
                             val qrCodePng = qrCode?.links?.find { it.media == "image/png" }?.href
                             val qrCodeBase64 =
                                     qrCode?.links?.find { it.media == "text/plain" }?.href
-
-                            // Converter para formato esperado pela API Tyler
                             mapOf(
                                     "transaction_id" to pagBankResponse.id,
                                     "pix_code" to (qrCode?.text ?: ""),
@@ -183,7 +136,6 @@ class PagBankProvider(
                             logger.error(
                                     "❌ Erro ao parsear response PagBank: ${parseError.message}"
                             )
-                            // Fallback: tentar parsear como erro
                             try {
                                 val errorResponse =
                                         json.decodeFromString<PagBankErrorResponse>(responseBody)
@@ -200,8 +152,6 @@ class PagBankProvider(
                         }
                     } else {
                         logger.error("❌ Erro PagBank [${response.code}]: $responseBody")
-
-                        // Tentar parsear erro específico
                         if (responseBody.isNotEmpty()) {
                             try {
                                 val errorResponse =
@@ -223,34 +173,25 @@ class PagBankProvider(
                     throw e
                 }
             }
-
-    /** 📊 Consultar status da Order/Doação */
     suspend fun getTransactionStatus(transactionId: String): Map<String, Any> =
             withContext(Dispatchers.IO) {
                 try {
                     logger.info("📊 Consultando status da doação: $transactionId")
-
                     val httpRequest =
                             Request.Builder()
                                     .url("$baseUrl/orders/$transactionId")
                                     .headers(getAuthHeaders())
                                     .get()
                                     .build()
-
                     val response = client.newCall(httpRequest).execute()
                     val responseBody = response.body?.string() ?: ""
-
                     logger.info("📥 Status response [${response.code}]: $responseBody")
-
                     if (response.isSuccessful) {
                         try {
                             val pagBankResponse =
                                     json.decodeFromString<PagBankOrderResponse>(responseBody)
-
-                            // Para PIX, usar qr_codes ao invés de charges
                             val qrCode = pagBankResponse.qr_codes?.firstOrNull()
                             val charge = pagBankResponse.charges?.firstOrNull()
-
                             mapOf(
                                     "transaction_id" to pagBankResponse.id,
                                     "status" to (pagBankResponse.status ?: "WAITING"),
@@ -264,7 +205,6 @@ class PagBankProvider(
                             )
                         } catch (parseError: Exception) {
                             logger.error("❌ Erro ao parsear status response: ${parseError.message}")
-                            // Fallback
                             mapOf(
                                     "transaction_id" to transactionId,
                                     "status" to "pending",
@@ -286,8 +226,6 @@ class PagBankProvider(
                     throw e
                 }
             }
-
-    /** 🔔 Processar webhook do PagBank - INTEGRADO COM SERVICES */
     suspend fun processWebhook(
             payload: String,
             @Suppress("UNUSED_PARAMETER") signature: String
@@ -295,69 +233,14 @@ class PagBankProvider(
         return try {
             logger.info("🔔 Processando webhook do PagBank")
             logger.debug("📥 Payload: $payload")
-
             try {
                 val webhookData = json.decodeFromString<PagBankWebhookPayload>(payload)
                 val referenceId = webhookData.reference_id
                 val status = webhookData.status
-
                 logger.info(
                         "✅ Webhook processado: $status para ${webhookData.id}, ref: $referenceId"
                 )
-
-                // TODO: Reativar quando os services estiverem disponíveis
-                /*
-                // Obter services via ApplicationContext para evitar dependência circular
-                val (type, success) = when {
-                    referenceId.startsWith("donation_") -> {
-                        val donationService = applicationContext.getBean("donationService") as com.tylerproject.services.DonationService
-                        val updated = donationService.updateDonationStatus(
-                            referenceId = referenceId,
-                            newStatus = mapPagBankStatus(status),
-                            paymentData = mapOf(
-                                "transactionId" to webhookData.id,
-                                "pixEndToEndId" to ""
-                            )
-                        )
-                        "donation" to updated
-                    }
-                    referenceId.startsWith("order_") -> {
-                        val orderService = applicationContext.getBean("orderService") as com.tylerproject.services.OrderService
-                        val updated = orderService.updateOrderStatus(
-                            referenceId = referenceId,
-                            newStatus = mapPagBankStatus(status),
-                            paymentData = mapOf(
-                                "transactionId" to webhookData.id,
-                                "pixEndToEndId" to ""
-                            )
-                        )
-                        "order" to updated
-                    }
-                    referenceId.startsWith("raffle_") -> {
-                        if (status.uppercase() == "PAID") {
-                            val raffleService = applicationContext.getBean("raffleService") as com.tylerproject.services.RaffleService
-                            val updated = raffleService.confirmTicketPayment(
-                                referenceId = referenceId,
-                                paymentData = mapOf(
-                                    "transactionId" to webhookData.id,
-                                    "pixEndToEndId" to ""
-                                )
-                            )
-                            "raffle" to updated
-                        } else {
-                            "raffle" to true // Para outros status, só registrar
-                        }
-                    }
-                    else -> {
-                        logger.warn("⚠️ Reference ID não reconhecido: $referenceId")
-                        "unknown" to false
-                    }
-                }
-                */
-
-                // Temporário: webhook simplificado
                 val (type, success) = "webhook" to true
-
                 mapOf(
                         "success" to success,
                         "eventType" to "payment_status_change",
@@ -373,7 +256,6 @@ class PagBankProvider(
                 logger.warn(
                         "⚠️ Não foi possível parsear webhook específico, processando como genérico"
                 )
-
                 mapOf(
                         "success" to true,
                         "eventType" to "generic_webhook",
@@ -394,8 +276,6 @@ class PagBankProvider(
             )
         }
     }
-
-    /** 🔄 Mapear status do PagBank para padrão da API Tyler */
     private fun mapPagBankStatus(status: String): String {
         return when (status.uppercase()) {
             "PAID" -> "PAID"

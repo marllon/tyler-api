@@ -1,5 +1,4 @@
 package com.tylerproject.config
-
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.firestore.Firestore
 import com.google.firebase.FirebaseApp
@@ -12,26 +11,19 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
-
 @Configuration
 class FirebaseConfig {
-
     private val logger = LoggerFactory.getLogger(FirebaseConfig::class.java)
-
     @Value("\${firebase.service-account-json:}") private lateinit var serviceAccountJson: String
-
     @Value("\${firebase.service-account-key:firebase-admin-sdk.json}")
     private lateinit var serviceAccountKeyPath: String
-
     @Value("\${firebase.project-id:tyler-dev}") private lateinit var firebaseProjectId: String
-
     @Bean
     fun firebaseApp(): FirebaseApp? {
         return try {
             if (FirebaseApp.getApps().isEmpty()) {
                 val credentials =
                         if (serviceAccountJson.isNotBlank()) {
-                            // Usar JSON diretamente da variável de ambiente
                             logger.info(
                                     "Carregando credenciais Firebase do JSON da variável de ambiente"
                             )
@@ -39,7 +31,6 @@ class FirebaseConfig {
                                     ByteArrayInputStream(serviceAccountJson.toByteArray())
                             )
                         } else {
-                            // Fallback: usar arquivo local se existir
                             try {
                                 logger.info(
                                         "Carregando credenciais Firebase do arquivo: $serviceAccountKeyPath"
@@ -54,13 +45,11 @@ class FirebaseConfig {
                                 GoogleCredentials.getApplicationDefault()
                             }
                         }
-
                 val options =
                         FirebaseOptions.builder()
                                 .setCredentials(credentials)
                                 .setProjectId(firebaseProjectId)
                                 .build()
-
                 val app = FirebaseApp.initializeApp(options)
                 logger.info("Firebase inicializado com sucesso - Projeto: $firebaseProjectId")
                 app
@@ -72,7 +61,6 @@ class FirebaseConfig {
             null
         }
     }
-
     @Bean
     fun firebaseAuth(firebaseApp: FirebaseApp?): FirebaseAuth? {
         return try {
@@ -87,7 +75,6 @@ class FirebaseConfig {
             null
         }
     }
-
     @Bean
     fun firestore(firebaseApp: FirebaseApp?): Firestore? {
         return try {

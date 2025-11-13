@@ -1,5 +1,4 @@
 package com.tylerproject.domain.product
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -15,7 +14,6 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-
 @RestController
 @RequestMapping("/api/products")
 @CrossOrigin(origins = ["*"])
@@ -25,9 +23,7 @@ import org.springframework.web.multipart.MultipartFile
                 "API de Gerenciamento de Produtos com upload de imagens, paginação otimizada e filtros avançados"
 )
 class ProductController(private val productService: ProductService) {
-
         private val logger = LoggerFactory.getLogger(ProductController::class.java)
-
         @GetMapping
         @Operation(
                 summary = "📋 Listar produtos (paginação tradicional)",
@@ -107,7 +103,6 @@ class ProductController(private val productService: ProductService) {
                         logger.info(
                                 "Listing products - page: $page, pageSize: $pageSize, activeOnly: $activeOnly, category: $category"
                         )
-
                         val pageResponse =
                                 productService.getProductsPaginated(
                                         limit = pageSize,
@@ -115,8 +110,6 @@ class ProductController(private val productService: ProductService) {
                                         activeOnly = activeOnly,
                                         category = category
                                 )
-
-                        // Converter para formato antigo para compatibilidade
                         @Suppress("DEPRECATION")
                         val response =
                                 ProductListResponse(
@@ -126,14 +119,12 @@ class ProductController(private val productService: ProductService) {
                                         totalProducts = -1L,
                                         pageSize = pageResponse.pageSize
                                 )
-
                         ResponseEntity.ok(response)
                 } catch (e: Exception) {
                         logger.error("Error listing products: ${e.message}", e)
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
                 }
         }
-
         @GetMapping("/{id}")
         @Operation(
                 summary = "Buscar produto por ID",
@@ -154,9 +145,7 @@ class ProductController(private val productService: ProductService) {
         ): ResponseEntity<ProductResponse> {
                 return try {
                         logger.info("Getting product by id: $id")
-
                         val product = productService.getProductById(id)
-
                         if (product != null) {
                                 ResponseEntity.ok(product)
                         } else {
@@ -167,7 +156,6 @@ class ProductController(private val productService: ProductService) {
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
                 }
         }
-
         @GetMapping("/paginated")
         @Operation(
                 summary = "🚀 Listar produtos (cursor pagination) - RECOMENDADO",
@@ -231,7 +219,6 @@ class ProductController(private val productService: ProductService) {
                         logger.info(
                                 "Getting products with cursor pagination - limit: $limit, cursor: $cursor"
                         )
-
                         val response =
                                 productService.getProductsPaginated(
                                         limit,
@@ -242,7 +229,6 @@ class ProductController(private val productService: ProductService) {
                                         activeOnly,
                                         category
                                 )
-
                         ResponseEntity.ok(response)
                 } catch (e: IllegalArgumentException) {
                         logger.error("Invalid pagination parameters: ${e.message}", e)
@@ -252,7 +238,6 @@ class ProductController(private val productService: ProductService) {
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
                 }
         }
-
         @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
         @Operation(
                 summary = "➕ Criar produto (com imagens opcionais) - UNIFICADO",
@@ -309,16 +294,13 @@ class ProductController(private val productService: ProductService) {
                                         productDataJson,
                                         ProductWithImagesRequest::class.java
                                 )
-
                         logger.info(
                                 "Creating product: ${request.name} - ${images?.size ?: 0} images"
                         )
-
                         val product =
                                 if (images != null && images.isNotEmpty()) {
                                         productService.createProductWithImages(request, images)
                                 } else {
-                                        // Criar produto sem imagens
                                         val basicRequest =
                                                 CreateProductRequest(
                                                         name = request.name,
@@ -346,7 +328,6 @@ class ProductController(private val productService: ProductService) {
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
                 }
         }
-
         @PutMapping("/{id}")
         @Operation(
                 summary = "✏️ Atualizar produto existente",
@@ -393,9 +374,7 @@ class ProductController(private val productService: ProductService) {
         ): ResponseEntity<ProductResponse> {
                 return try {
                         logger.info("Updating product: $id")
-
                         val product = productService.updateProduct(id, request)
-
                         if (product != null) {
                                 ResponseEntity.ok(product)
                         } else {
@@ -406,7 +385,6 @@ class ProductController(private val productService: ProductService) {
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
                 }
         }
-
         @DeleteMapping("/{id}")
         @Operation(
                 summary = "🗑️ Deletar produto",
@@ -447,9 +425,7 @@ class ProductController(private val productService: ProductService) {
         ): ResponseEntity<ProductDeletedResponse> {
                 return try {
                         logger.info("Deleting product: $id")
-
                         val result = productService.deleteProduct(id)
-
                         if (result != null) {
                                 ResponseEntity.ok(result)
                         } else {
@@ -460,7 +436,6 @@ class ProductController(private val productService: ProductService) {
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
                 }
         }
-
         @PostMapping("/{id}/images")
         @Operation(
                 summary = "📸 Upload de imagem para produto existente",
@@ -486,7 +461,6 @@ class ProductController(private val productService: ProductService) {
         ): ResponseEntity<ImageUploadResponse> {
                 return try {
                         logger.info("Uploading image for product: $id, isPrimary: $isPrimary")
-
                         val response = productService.uploadProductImage(id, file, isPrimary)
                         ResponseEntity.ok(response)
                 } catch (e: Exception) {
@@ -494,7 +468,6 @@ class ProductController(private val productService: ProductService) {
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
                 }
         }
-
         @DeleteMapping("/{id}/images/{imageId}")
         @Operation(
                 summary = "🗑️ Remover imagem do produto",
@@ -509,7 +482,6 @@ class ProductController(private val productService: ProductService) {
         ): ResponseEntity<Unit> {
                 return try {
                         logger.info("Removing image $imageId from product: $id")
-
                         productService.removeProductImage(id, imageId)
                         ResponseEntity.ok().build()
                 } catch (e: Exception) {

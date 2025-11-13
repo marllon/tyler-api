@@ -1,20 +1,5 @@
 package com.tylerproject.models
-
 import kotlinx.serialization.Serializable
-
-/**
- * 📨 Tyler API - Request/Response DTOs
- *
- * DTOs para todos os endpoints da plataforma de caridade:
- * - Product & Order endpoints
- * - Goal & Donation endpoints
- * - Raffle & Ticket endpoints
- * - Event endpoints
- * - Admin & Audit endpoints
- */
-
-// ================== PRODUCT DTOs ==================
-
 @Serializable
 data class CreateProductRequest(
         val name: String,
@@ -24,7 +9,6 @@ data class CreateProductRequest(
         val category: String? = null,
         val stock: Int? = null
 )
-
 @Serializable
 data class UpdateProductRequest(
         val name: String? = null,
@@ -35,14 +19,12 @@ data class UpdateProductRequest(
         val category: String? = null,
         val stock: Int? = null
 )
-
 @Serializable
 data class ProductResponse(
         val success: Boolean,
         val product: Product? = null,
         val error: String? = null
 )
-
 @Serializable
 data class ProductsListResponse(
         val success: Boolean,
@@ -52,11 +34,7 @@ data class ProductsListResponse(
         val pageSize: Int = 20,
         val error: String? = null
 )
-
-// ================== ORDER DTOs ==================
-
 @Serializable data class OrderItemRequest(val productId: String, val quantity: Int = 1)
-
 @Serializable
 data class CreateOrderRequest(
         val items: List<OrderItemRequest>,
@@ -64,7 +42,6 @@ data class CreateOrderRequest(
         val goalId: String? = null,
         val notes: String? = null
 )
-
 @Serializable
 data class OrderCheckoutResponse(
         val success: Boolean,
@@ -79,10 +56,8 @@ data class OrderCheckoutResponse(
         val expirationDate: String? = null,
         val error: String? = null
 )
-
 @Serializable
 data class OrderResponse(val success: Boolean, val order: Order? = null, val error: String? = null)
-
 @Serializable
 data class OrdersListResponse(
         val success: Boolean,
@@ -92,9 +67,6 @@ data class OrdersListResponse(
         val pageSize: Int = 20,
         val error: String? = null
 )
-
-// ================== GOAL DTOs ==================
-
 @Serializable
 data class CreateGoalRequest(
         val title: String,
@@ -104,7 +76,6 @@ data class CreateGoalRequest(
         val imageUrl: String? = null,
         val category: String? = null
 )
-
 @Serializable
 data class UpdateGoalRequest(
         val title: String? = null,
@@ -115,7 +86,6 @@ data class UpdateGoalRequest(
         val imageUrl: String? = null,
         val category: String? = null
 )
-
 @Serializable
 data class GoalResponse(
         val success: Boolean,
@@ -123,7 +93,6 @@ data class GoalResponse(
         val stats: GoalStats? = null,
         val error: String? = null
 )
-
 @Serializable
 data class GoalsListResponse(
         val success: Boolean,
@@ -133,9 +102,6 @@ data class GoalsListResponse(
         val pageSize: Int = 20,
         val error: String? = null
 )
-
-// ================== DONATION DTOs ==================
-
 @Serializable
 data class CreateDonationRequest(
         val amount: Long,
@@ -144,7 +110,6 @@ data class CreateDonationRequest(
         val goalId: String? = null,
         val anonymous: Boolean = false
 )
-
 @Serializable
 data class DonationCheckoutResponse(
         val success: Boolean,
@@ -159,14 +124,12 @@ data class DonationCheckoutResponse(
         val expirationDate: String? = null,
         val error: String? = null
 )
-
 @Serializable
 data class DonationResponse(
         val success: Boolean,
         val donation: Donation? = null,
         val error: String? = null
 )
-
 @Serializable
 data class DonationsListResponse(
         val success: Boolean,
@@ -176,9 +139,6 @@ data class DonationsListResponse(
         val pageSize: Int = 20,
         val error: String? = null
 )
-
-// ================== RAFFLE DTOs ==================
-
 @Serializable
 data class CreateRaffleRequest(
         val title: String,
@@ -190,7 +150,6 @@ data class CreateRaffleRequest(
         val deadline: String,
         val goalId: String? = null
 )
-
 @Serializable
 data class UpdateRaffleRequest(
         val title: String? = null,
@@ -202,14 +161,12 @@ data class UpdateRaffleRequest(
         val status: String? = null,
         val goalId: String? = null
 )
-
 @Serializable
 data class RaffleTicketRequest(
         val ticketNumbers: List<Int>? = null, // se null, aloca automaticamente
         val quantity: Int = 1,
         val buyer: BuyerInfo
 )
-
 @Serializable
 data class RaffleCheckoutResponse(
         val success: Boolean,
@@ -225,7 +182,6 @@ data class RaffleCheckoutResponse(
         val expirationDate: String? = null,
         val error: String? = null
 )
-
 @Serializable
 data class RaffleResponse(
         val success: Boolean,
@@ -234,7 +190,6 @@ data class RaffleResponse(
         val soldTickets: List<Int> = emptyList(),
         val error: String? = null
 )
-
 @Serializable
 data class RafflesListResponse(
         val success: Boolean,
@@ -244,13 +199,11 @@ data class RafflesListResponse(
         val pageSize: Int = 20,
         val error: String? = null
 )
-
 @Serializable
 data class RaffleDrawRequest(
         val randomSeed: String, // para transparência do sorteio
         val witnessHash: String? = null
 )
-
 @Serializable
 data class RaffleDrawResponse(
         val success: Boolean,
@@ -261,9 +214,6 @@ data class RaffleDrawResponse(
         val drawDate: String? = null,
         val error: String? = null
 )
-
-// ================== EVENT DTOs ==================
-
 @Serializable
 data class CreateEventRequest(
         val title: String,
@@ -276,7 +226,6 @@ data class CreateEventRequest(
         val registrationRequired: Boolean = false,
         val registrationDeadline: String? = null
 )
-
 @Serializable
 data class UpdateEventRequest(
         val title: String? = null,
@@ -291,10 +240,8 @@ data class UpdateEventRequest(
         val registrationRequired: Boolean? = null,
         val registrationDeadline: String? = null
 )
-
 @Serializable
 data class EventRegistrationRequest(val participant: BuyerInfo, val notes: String? = null)
-
 @Serializable
 data class EventResponse(
         val success: Boolean,
@@ -303,7 +250,6 @@ data class EventResponse(
         val availableSpots: Int? = null,
         val error: String? = null
 )
-
 @Serializable
 data class EventsListResponse(
         val success: Boolean,
@@ -313,9 +259,6 @@ data class EventsListResponse(
         val pageSize: Int = 20,
         val error: String? = null
 )
-
-// ================== AUDIT DTOs ==================
-
 @Serializable
 data class AuditLogResponse(
         val success: Boolean,
@@ -325,7 +268,6 @@ data class AuditLogResponse(
         val pageSize: Int = 50,
         val error: String? = null
 )
-
 @Serializable
 data class AuditLogRequest(
         val entity: String? = null,
@@ -337,9 +279,6 @@ data class AuditLogRequest(
         val page: Int = 1,
         val pageSize: Int = 50
 )
-
-// ================== DASHBOARD DTOs ==================
-
 @Serializable
 data class DashboardResponse(
         val success: Boolean,
@@ -351,9 +290,6 @@ data class DashboardResponse(
         val upcomingEvents: List<Event> = emptyList(),
         val error: String? = null
 )
-
-// ================== COMMON DTOs ==================
-
 @Serializable
 data class GenericResponse(
         val success: Boolean,
@@ -361,21 +297,18 @@ data class GenericResponse(
         val data: String? = null, // JSON string for flexible data
         val error: String? = null
 )
-
 @Serializable
 data class SuccessResponse(
         val success: Boolean = true,
         val message: String,
         val id: String? = null
 )
-
 @Serializable
 data class TylerErrorResponse(
         val success: Boolean = false,
         val error: String,
         val details: String? = null
 )
-
 @Serializable
 data class PaginationRequest(
         val page: Int = 1,
@@ -384,7 +317,6 @@ data class PaginationRequest(
         val sortOrder: String = "desc", // asc, desc
         val filter: String? = null
 )
-
 @Serializable
 data class UploadResponse(
         val success: Boolean,

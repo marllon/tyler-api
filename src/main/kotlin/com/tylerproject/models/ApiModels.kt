@@ -1,7 +1,5 @@
 package com.tylerproject.models
-
 import kotlinx.serialization.Serializable
-
 @Serializable
 data class CheckoutRequest(
         val amount: Double,
@@ -9,9 +7,7 @@ data class CheckoutRequest(
         val payer: PayerInfo,
         val orderId: String? = null
 )
-
 @Serializable data class PayerInfo(val name: String, val email: String, val cpf: String)
-
 @Serializable
 data class CheckoutResponse(
         val success: Boolean,
@@ -27,7 +23,6 @@ data class CheckoutResponse(
         val instructions: String? = null,
         val error: String? = null
 )
-
 @Serializable
 data class PaymentStatusResponse(
         val success: Boolean,
@@ -42,7 +37,6 @@ data class PaymentStatusResponse(
         val message: String? = null,
         val error: String? = null
 )
-
 @Serializable
 data class WebhookResponse(
         val success: Boolean,
@@ -53,7 +47,6 @@ data class WebhookResponse(
         val provider: String? = null,
         val error: String? = null
 )
-
 @Serializable
 data class HealthResponse(
         val status: String,
@@ -64,5 +57,4 @@ data class HealthResponse(
         val firebase: String,
         val provider: String
 )
-
 @Serializable data class ErrorResponse(val success: Boolean = false, val error: String)

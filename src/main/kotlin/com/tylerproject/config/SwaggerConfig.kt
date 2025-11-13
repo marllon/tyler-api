@@ -1,5 +1,4 @@
 package com.tylerproject.config
-
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Contact
@@ -11,12 +10,9 @@ import io.swagger.v3.oas.models.servers.Server
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-
 @Configuration
 class SwaggerConfig {
-
         @Value("\${server.port:8080}") private val serverPort: String = "8080"
-
         @Bean
         fun openAPI(): OpenAPI {
                 return OpenAPI()
@@ -25,17 +21,14 @@ class SwaggerConfig {
                                         .description(
                                                 """
                                         🚀 **API completa para sistema de doações e eventos beneficentes**
-                                        
                                         ## Características:
                                         - **Clean Architecture**: Arquitetura limpa e modular
                                         - **Firebase**: Autenticação e Firestore NoSQL
                                         - **Google Cloud Storage**: Upload seguro de imagens
                                         - **Cursor Pagination**: Performance otimizada para NoSQL
                                         - **PIX Integration**: Pagamentos via PIX
-                                        
                                         ## Autenticação:
                                         Para endpoints protegidos, use o botão "Authorize" e insira o token JWT do Firebase.
-                                        
                                         **Formato**: `Bearer your-firebase-jwt-token`
                                         """.trimIndent()
                                         )

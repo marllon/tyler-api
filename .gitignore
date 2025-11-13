@@ -70,6 +70,28 @@ pagbank-config.json
 payment-logs/
 transaction-backup/
 
-
 firebase-admin-sdk.json
 **/firebase-admin-sdk.json
+
+# 🤖 IA Generated Documentation (NEVER COMMIT)
+**/README.md
+**/SETUP_GUIDE.md
+**/TESTING_GUIDE.md
+**/CLOUD-RUN-*.md
+**/PAGBANK-*.md
+**/PAGARME-*.md
+**/PIX_INTEGRATION_GUIDE.md
+**/FRONTEND-INTEGRATION.md
+**/ENVIRONMENT-SETUP.md
+**/CREDENTIALS-CONFIG-EXAMPLE.md
+**/PROMPT_PARA_IA.md
+**/*-GUIDE.md
+**/*-SETUP.md
+**/*TESTING*.md
+**/*CONFIG*.md
+**/*TUTORIAL*.md
+environment-variables.md
+*.bat
+*.sh
+test-*.html
+test-*.json

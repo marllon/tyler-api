@@ -1,5 +1,4 @@
 package com.tylerproject.controllers
-
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
@@ -11,22 +10,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.web.bind.annotation.*
-
-/**
- * 🏥 Health Controller - Endpoints para monitoramento
- *
- * Endpoints disponíveis:
- * - GET /api/health - Health check básico
- * - GET /actuator/health - Health check do Spring Actuator
- */
 @RestController
 @RequestMapping("/api")
 @Tag(name = "🏥 Health", description = "Endpoints de monitoramento e status da API")
 class HealthController : HealthIndicator {
-
     private val logger = LoggerFactory.getLogger(HealthController::class.java)
-
-    /** 🏥 Health Check Básico */
     @GetMapping("/health")
     @Operation(
             summary = "🏥 Health check da API",
@@ -60,7 +48,6 @@ class HealthController : HealthIndicator {
     )
     fun healthCheck(): Map<String, Any> {
         logger.info("🏥 Health check solicitado")
-
         return mapOf(
                 "status" to "healthy",
                 "message" to "Tyler API Spring Boot está funcionando perfeitamente! ✅",
@@ -68,11 +55,8 @@ class HealthController : HealthIndicator {
                 "version" to "2.0.0-spring-boot"
         )
     }
-
-    /** 🔍 Health Indicator para Spring Actuator */
     override fun health(): Health {
         return try {
-            // Simplified health check para Cloud Run
             Health.up()
                     .withDetail("service", "Tyler API")
                     .withDetail("version", "2.0.0-spring-boot")

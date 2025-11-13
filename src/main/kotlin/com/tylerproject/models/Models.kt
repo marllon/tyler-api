@@ -1,20 +1,5 @@
 package com.tylerproject.models
-
 import kotlinx.serialization.Serializable
-
-/**
- * 🏗️ Tyler API - Domain Models
- *
- * Modelos de domínio para toda a plataforma de caridade:
- * - Products & Orders (Produtos e Pedidos)
- * - Goals & Donations (Metas de Arrecadação e Doações)
- * - Raffles & Tickets (Rifas Solidárias e Bilhetes)
- * - Events (Eventos Solidários)
- * - AuditLog (Auditoria e Transparência)
- */
-
-// ================== COMMON TYPES ==================
-
 enum class PaymentStatus {
     NEW,
     WAITING_PAYMENT,
@@ -23,15 +8,12 @@ enum class PaymentStatus {
     CANCELLED,
     EXPIRED
 }
-
 enum class PaymentProvider {
     PAGBANK
 }
-
 enum class PaymentMethod {
     PIX
 }
-
 @Serializable
 data class PaymentInfo(
         val provider: String = "PAGBANK",
@@ -48,32 +30,27 @@ data class PaymentInfo(
         val amount: Long,
         val currency: String = "BRL"
 )
-
 @Serializable
 data class BuyerInfo(
         val name: String,
         val email: String,
-        val document: String, // CPF
+        val document: String,
         val phone: String? = null
 )
-
-// ================== PRODUCTS & ORDERS ==================
-
 @Serializable
 data class Product(
         val id: String,
         val name: String,
         val description: String,
-        val price: Long, // em centavos
+        val price: Long,
         val imageUrl: String? = null,
         val active: Boolean = true,
         val category: String? = null,
-        val stock: Int? = null, // null = unlimited
+        val stock: Int? = null,
         val createdAt: String,
         val updatedAt: String,
         val createdBy: String? = null
 )
-
 @Serializable
 data class OrderItem(
         val productId: String,
@@ -82,7 +59,6 @@ data class OrderItem(
         val quantity: Int = 1,
         val subtotal: Long // quantity * productPrice
 )
-
 @Serializable
 data class Order(
         val id: String,
@@ -97,9 +73,6 @@ data class Order(
         val createdAt: String,
         val updatedAt: String
 )
-
-// ================== GOALS & DONATIONS ==================
-
 @Serializable
 data class Goal(
         val id: String,
@@ -116,7 +89,6 @@ data class Goal(
         val updatedAt: String,
         val createdBy: String? = null
 )
-
 @Serializable
 data class Donation(
         val id: String,
@@ -131,9 +103,6 @@ data class Donation(
         val createdAt: String,
         val updatedAt: String
 )
-
-// ================== RAFFLES & TICKETS ==================
-
 enum class RaffleStatus {
     DRAFT,
     ACTIVE,
@@ -141,7 +110,6 @@ enum class RaffleStatus {
     DRAWN,
     CANCELLED
 }
-
 @Serializable
 data class Raffle(
         val id: String,
@@ -163,7 +131,6 @@ data class Raffle(
         val updatedAt: String,
         val createdBy: String? = null
 )
-
 @Serializable
 data class Ticket(
         val id: String,
@@ -176,16 +143,12 @@ data class Ticket(
         val paidAt: String? = null,
         val createdAt: String
 )
-
-// ================== EVENTS ==================
-
 enum class EventStatus {
     DRAFT,
     PUBLISHED,
     CANCELLED,
     COMPLETED
 }
-
 @Serializable
 data class Event(
         val id: String,
@@ -205,7 +168,6 @@ data class Event(
         val updatedAt: String,
         val createdBy: String? = null
 )
-
 @Serializable
 data class EventParticipant(
         val id: String,
@@ -215,9 +177,6 @@ data class EventParticipant(
         val attended: Boolean = false,
         val notes: String? = null
 )
-
-// ================== AUDIT LOG ==================
-
 @Serializable
 data class AuditLog(
         val id: String,
@@ -233,9 +192,6 @@ data class AuditLog(
         val timestamp: String,
         val details: Map<String, String> = emptyMap()
 )
-
-// ================== STATISTICS ==================
-
 @Serializable
 data class DashboardStats(
         val totalDonations: Long,
@@ -249,7 +205,6 @@ data class DashboardStats(
         val recentTransactions: Int,
         val lastUpdated: String
 )
-
 @Serializable
 data class GoalStats(
         val goalId: String,

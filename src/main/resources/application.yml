@@ -4,13 +4,11 @@ spring:
   application:
     name: tyler-api
 
-  # 🔧 JPA/Hibernate (desabilitado - usando Firestore)
   jpa:
     show-sql: false
     hibernate:
       ddl-auto: none
 
-  # 🌐 CORS Configuration
   web:
     cors:
       allowed-origins: "*"
@@ -18,7 +16,6 @@ spring:
       allowed-headers: "*"
       allow-credentials: false
 
-  # 📁 File Upload Configuration
   servlet:
     multipart:
       enabled: true
@@ -26,14 +23,10 @@ spring:
       max-request-size: 50MB
       file-size-threshold: 2KB
 
-# 🖥️ Server Configuration
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
-  servlet:
-    context-path: /
 
-# 📊 Actuator - Monitoramento
 management:
   endpoints:
     web:
@@ -43,11 +36,11 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
 firebase:
   project-id: tyler-dev-c2420
   service-account-json: ${FIREBASE_CREDENTIALS_JSON:}
 
-# 🗂️ Google Cloud Storage Configuration
 app:
   gcp:
     project-id: ${GCP_PROJECT_ID:tyler-dev-c2420}
@@ -55,11 +48,9 @@ app:
     storage-credentials-json: ${GCP_STORAGE_CREDENTIALS_JSON:}
     base-url: https://storage.googleapis.com
 
-# 💳 Payment Configuration
 pagbank:
   token: ${PAGBANK_TOKEN:}
 
-# 📝 Logging Configuration
 logging:
   level:
     com.tylerproject: INFO
@@ -67,7 +58,6 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
-# 📚 Swagger/OpenAPI Configuration
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -84,13 +74,15 @@ springdoc:
   show-actuator: true
 
 ---
-# 🚀 Configuração para Produção (Cloud Run)
 spring:
   config:
     activate:
       on-profile: production
 
-# 📊 Actuator otimizado para produção
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+
 management:
   endpoints:
     web:
@@ -100,7 +92,6 @@ management:
     health:
       show-details: when-authorized
 
-# 📝 Logging para produção
 logging:
   level:
     com.tylerproject: INFO
@@ -110,7 +101,10 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
-# 🗂️ Google Cloud Storage - Produção
+firebase:
+  project-id: ${GCP_PROJECT_ID}
+  service-account-json: ${FIREBASE_CREDENTIALS_JSON}
+
 app:
   gcp:
     project-id: ${GCP_PROJECT_ID}
@@ -118,10 +112,5 @@ app:
     storage-credentials-json: ${GCP_STORAGE_CREDENTIALS_JSON}
     base-url: https://storage.googleapis.com
 
-# 🔥 Firebase - Produção
-firebase:
-  service-account-json: ${FIREBASE_CREDENTIALS_JSON}
-
-# 💳 PagBank - Produção
 pagbank:
   token: ${PAGBANK_TOKEN}

@@ -1,7 +1,5 @@
 package com.tylerproject.domain.product
-
 import kotlinx.serialization.Serializable
-
 @Serializable
 data class ProductImage(
         val id: String = "",
@@ -12,7 +10,6 @@ data class ProductImage(
         val isPrimary: Boolean = false,
         val uploadedAt: String = ""
 )
-
 @Serializable
 data class Product(
         val id: String = "",

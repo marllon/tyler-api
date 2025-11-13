@@ -1,7 +1,3 @@
-# 🛠️ Profile Local - Desenvolvimento
-# Configurações para desenvolvimento local
-
-# � PagBank Configuration (Sandbox)
 pagbank:
   token: "SEU_TOKEN_PAGBANK_SANDBOX_AQUI"
   webhook-url: "http://localhost:8080/api/payments/webhook"
@@ -10,14 +6,12 @@ firebase:
   project-id: tyler-dev-c2420
   service-account-key: firebase-admin-sdk.json
 
-# �️ Google Cloud Storage - Development
 app:
   gcp:
     project-id: tyler-dev-c2420
     bucket-name: tyler-products-images-dev
     storage-credentials-path: tyler-storage-credentials.json
 
-# �📝 Logging - Verbose para desenvolvimento
 logging:
   level:
     com.tylerproject: DEBUG
@@ -26,7 +20,6 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
-# 🌐 CORS - Permissivo para desenvolvimento
 spring:
   web:
     cors:
@@ -35,7 +28,6 @@ spring:
       allowed-headers: "*"
       allow-credentials: true
 
-# 📊 Actuator - Todas as métricas expostas
 management:
   endpoints:
     web:

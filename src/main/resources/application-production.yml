@@ -1,44 +1,31 @@
-# 🚀 Profile Produção - Google Cloud Run
-# Configurações para ambiente de produção
-
 spring:
   config:
     activate:
       on-profile: production
+  web:
+    cors:
+      allowed-origins: "https://tyler-frontend.app,https://doações.tyler.org"
+      allowed-methods: "GET,POST,OPTIONS"
+      allowed-headers: "Content-Type,Authorization"
+      allow-credentials: true
 
-# 🖥️ Server Configuration para Cloud Run
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
 
-# 📊 Management para Cloud Run
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: never
 
-# 🔥 Firebase - usar credenciais padrão do ambiente
-firebase:
-  project-id: ${GCP_PROJECT_ID:tyler-dev-c2420}
-  service-account-json: ${FIREBASE_CREDENTIALS_JSON:}
-
-# 🗂️ Google Cloud Storage - usar credenciais padrão do ambiente
-app:
-  gcp:
-    project-id: ${GCP_PROJECT_ID:tyler-dev-c2420}
-    bucket-name: ${GCP_BUCKET_NAME:tyler-products-images-dev}
-    storage-credentials-json: ${GCP_STORAGE_CREDENTIALS_JSON:}
-    base-url: https://storage.googleapis.com
-
-# 💳 PagBank Configuration
-pagbank:
-  token: ${PAGBANK_TOKEN:}
-
-# �📝 Logging - Otimizado para produção
 logging:
   level:
     com.tylerproject: INFO
@@ -47,26 +34,16 @@ logging:
   pattern:
     console: "%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n"
 
-# 🌐 CORS - Restrito para produção
-cors:
-  allowed-origins: "https://tyler-frontend.app,https://doações.tyler.org"
-  allowed-methods: "GET,POST,OPTIONS"
-  allowed-headers: "Content-Type,Authorization"
-  allow-credentials: true
+firebase:
+  project-id: ${GCP_PROJECT_ID:tyler-dev-c2420}
+  service-account-json: ${FIREBASE_CREDENTIALS_JSON:}
 
-# 📊 Actuator - Métricas essenciais apenas
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,metrics,info
-  endpoint:
-    health:
-      show-details: never
+app:
+  gcp:
+    project-id: ${GCP_PROJECT_ID:tyler-dev-c2420}
+    bucket-name: ${GCP_BUCKET_NAME:tyler-products-images-dev}
+    storage-credentials-json: ${GCP_STORAGE_CREDENTIALS_JSON:}
+    base-url: https://storage.googleapis.com
 
-# 🚀 JVM Optimization para Cloud Run
-server:
-  tomcat:
-    threads:
-      max: 200
-      min-spare: 10
+pagbank:
+  token: ${PAGBANK_TOKEN:}
