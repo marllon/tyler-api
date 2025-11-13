@@ -3,12 +3,14 @@
 ## 📋 **Pré-requisitos**
 
 ### **1. Ferramentas Necessárias:**
+
 - ✅ Google Cloud SDK (gcloud)
 - ✅ Docker Desktop
 - ✅ Conta Google Cloud ativa
 - ✅ Projeto GCP configurado
 
 ### **2. Verificar Instalações:**
+
 ```bash
 # Verificar Google Cloud SDK
 gcloud --version
@@ -26,6 +28,7 @@ gcloud config set project SEU_PROJECT_ID
 ## 📁 **1. Criar Dockerfile**
 
 ### **Dockerfile Otimizado para Spring Boot + Kotlin:**
+
 ```dockerfile
 # Multi-stage build para otimizar tamanho
 FROM maven:3.9.4-openjdk-21 AS builder
@@ -67,6 +70,7 @@ CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 ```
 
 ### **Criar .dockerignore:**
+
 ```
 target/
 .mvn/
@@ -89,6 +93,7 @@ node_modules/
 ## ⚙️ **2. Configurar application.yml para Produção**
 
 ### **Atualizar src/main/resources/application.yml:**
+
 ```yaml
 spring:
   profiles:
@@ -102,7 +107,7 @@ spring:
       on-profile: production
   application:
     name: tyler-api
-    
+
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
@@ -147,6 +152,7 @@ management:
 ## 🔐 **3. Configurar Credenciais**
 
 ### **3.1. Service Account para Cloud Storage:**
+
 ```bash
 # Criar service account
 gcloud iam service-accounts create tyler-storage-sa \
@@ -164,10 +170,11 @@ gcloud iam service-accounts keys create storage-credentials.json \
 ```
 
 ### **3.2. Firebase Admin SDK:**
+
 ```bash
 # Baixar do Firebase Console:
 # 1. Ir para Firebase Console -> Configurações do Projeto
-# 2. Aba "Contas de serviço" 
+# 2. Aba "Contas de serviço"
 # 3. "Gerar nova chave privada"
 # 4. Salvar como firebase-credentials.json
 ```
@@ -177,6 +184,7 @@ gcloud iam service-accounts keys create storage-credentials.json \
 ## 🐳 **4. Build e Test Local**
 
 ### **4.1. Build da imagem Docker:**
+
 ```bash
 # No diretório do projeto
 docker build -t tyler-api .
@@ -190,6 +198,7 @@ docker run -p 8080:8080 \
 ```
 
 ### **4.2. Testar health check:**
+
 ```bash
 curl http://localhost:8080/api/health
 # Deve retornar: {"status":"healthy",...}
@@ -200,6 +209,7 @@ curl http://localhost:8080/api/health
 ## ☁️ **5. Deploy no Cloud Run**
 
 ### **5.1. Configurar Google Cloud:**
+
 ```bash
 # Autenticar Docker com GCR
 gcloud auth configure-docker
@@ -212,6 +222,7 @@ export REGION=us-central1
 ```
 
 ### **5.2. Build e Push da imagem:**
+
 ```bash
 # Tag para Google Container Registry
 docker tag tyler-api gcr.io/$PROJECT_ID/$IMAGE_NAME
@@ -221,6 +232,7 @@ docker push gcr.io/$PROJECT_ID/$IMAGE_NAME
 ```
 
 ### **5.3. Deploy no Cloud Run:**
+
 ```bash
 gcloud run deploy $SERVICE_NAME \
   --image gcr.io/$PROJECT_ID/$IMAGE_NAME \
@@ -245,6 +257,7 @@ gcloud run deploy $SERVICE_NAME \
 ## 🔐 **6. Configurar Secrets (Recomendado)**
 
 ### **6.1. Usar Google Secret Manager:**
+
 ```bash
 # Criar secrets para credenciais
 gcloud secrets create firebase-credentials --data-file=firebase-credentials.json
@@ -258,6 +271,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 ```
 
 ### **6.2. Deploy com Secrets:**
+
 ```bash
 gcloud run deploy $SERVICE_NAME \
   --image gcr.io/$PROJECT_ID/$IMAGE_NAME \
@@ -277,6 +291,7 @@ gcloud run deploy $SERVICE_NAME \
 ## 🌐 **7. Configurar Domínio Customizado**
 
 ### **7.1. Mapear domínio:**
+
 ```bash
 # Mapear domínio
 gcloud run domain-mappings create \
@@ -286,6 +301,7 @@ gcloud run domain-mappings create \
 ```
 
 ### **7.2. Configurar DNS:**
+
 ```
 # No seu provedor DNS, criar registro CNAME:
 api.tyler.com -> ghs.googlehosted.com
@@ -296,16 +312,19 @@ api.tyler.com -> ghs.googlehosted.com
 ## 🔍 **8. Monitoramento e Logs**
 
 ### **8.1. Ver logs:**
+
 ```bash
 gcloud run services logs read $SERVICE_NAME --region $REGION
 ```
 
 ### **8.2. Ver métricas:**
+
 ```bash
 gcloud run services describe $SERVICE_NAME --region $REGION
 ```
 
 ### **8.3. Health check:**
+
 ```bash
 curl https://tyler-api-xxx.a.run.app/api/health
 ```
@@ -315,6 +334,7 @@ curl https://tyler-api-xxx.a.run.app/api/health
 ## 📊 **9. Configurações de Performance**
 
 ### **9.1. Otimizações Cloud Run:**
+
 ```bash
 # Deploy otimizado
 gcloud run deploy $SERVICE_NAME \
@@ -332,6 +352,7 @@ gcloud run deploy $SERVICE_NAME \
 ```
 
 ### **9.2. Configurar Load Balancer (Opcional):**
+
 ```bash
 # Para múltiplas regiões
 gcloud run deploy $SERVICE_NAME --region us-east1
@@ -345,24 +366,28 @@ gcloud run deploy $SERVICE_NAME --region europe-west1
 ### **Problemas Comuns:**
 
 #### **Build Failed:**
+
 ```bash
 # Verificar logs do build
 gcloud builds log $(gcloud builds list --limit=1 --format="value(id)")
 ```
 
 #### **Service não responde:**
+
 ```bash
 # Verificar logs do serviço
 gcloud run services logs read $SERVICE_NAME --region $REGION --limit 50
 ```
 
 #### **Timeout:**
+
 ```bash
 # Aumentar timeout
 gcloud run services update $SERVICE_NAME --timeout 900 --region $REGION
 ```
 
 #### **Out of Memory:**
+
 ```bash
 # Aumentar memória
 gcloud run services update $SERVICE_NAME --memory 2Gi --region $REGION
@@ -388,6 +413,7 @@ gcloud run services update $SERVICE_NAME --memory 2Gi --region $REGION
 ## 🎯 **URLs Finais**
 
 Após o deploy, sua API estará disponível em:
+
 - **Health Check**: `https://tyler-api-xxx.a.run.app/api/health`
 - **Swagger UI**: `https://tyler-api-xxx.a.run.app/swagger-ui.html`
 - **API Products**: `https://tyler-api-xxx.a.run.app/api/products`

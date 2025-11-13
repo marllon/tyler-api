@@ -3,7 +3,9 @@ package com.tylerproject.domain.product
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 
-data class CreateProductRequest @JsonCreator constructor(
+data class CreateProductRequest
+@JsonCreator
+constructor(
         @JsonProperty("name") val name: String,
         @JsonProperty("description") val description: String,
         @JsonProperty("price") val price: Double,
@@ -28,7 +30,9 @@ data class ImageUploadResponse(
         val isPrimary: Boolean
 )
 
-data class ProductWithImagesRequest @JsonCreator constructor(
+data class ProductWithImagesRequest
+@JsonCreator
+constructor(
         @JsonProperty("name") val name: String,
         @JsonProperty("description") val description: String,
         @JsonProperty("price") val price: Double,
@@ -42,10 +46,13 @@ data class ProductWithImagesRequest @JsonCreator constructor(
         @JsonProperty("color") val color: String? = null,
         @JsonProperty("warranty") val warranty: Int? = null,
         @JsonProperty("tags") val tags: List<String>? = null,
-        @JsonProperty("primaryImageIndex") val primaryImageIndex: Int = 0 // Índice da imagem principal nas imagens enviadas
+        @JsonProperty("primaryImageIndex")
+        val primaryImageIndex: Int = 0 // Índice da imagem principal nas imagens enviadas
 )
 
-data class UpdateProductRequest @JsonCreator constructor(
+data class UpdateProductRequest
+@JsonCreator
+constructor(
         @JsonProperty("name") val name: String? = null,
         @JsonProperty("description") val description: String? = null,
         @JsonProperty("price") val price: Double? = null,

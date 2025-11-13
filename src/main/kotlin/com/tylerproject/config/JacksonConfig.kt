@@ -15,14 +15,14 @@ class JacksonConfig {
     fun objectMapper(): ObjectMapper {
         return ObjectMapper().apply {
             registerModule(
-                KotlinModule.Builder()
-                    .withReflectionCacheSize(512)
-                    .configure(KotlinFeature.NullToEmptyCollection, false)
-                    .configure(KotlinFeature.NullToEmptyMap, false)
-                    .configure(KotlinFeature.NullIsSameAsDefault, true)
-                    .configure(KotlinFeature.SingletonSupport, false)
-                    .configure(KotlinFeature.StrictNullChecks, false)
-                    .build()
+                    KotlinModule.Builder()
+                            .withReflectionCacheSize(512)
+                            .configure(KotlinFeature.NullToEmptyCollection, false)
+                            .configure(KotlinFeature.NullToEmptyMap, false)
+                            .configure(KotlinFeature.NullIsSameAsDefault, true)
+                            .configure(KotlinFeature.SingletonSupport, false)
+                            .configure(KotlinFeature.StrictNullChecks, false)
+                            .build()
             )
         }
     }

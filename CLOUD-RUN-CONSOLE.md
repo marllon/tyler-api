@@ -9,11 +9,13 @@ Este guia mostra como fazer deploy da Tyler API usando apenas o console web do G
 ## 📋 **Pré-requisitos**
 
 ### **1. ✅ Conta Google Cloud:**
+
 - Conta do Google ativa
 - Projeto GCP criado
 - Billing habilitado
 
 ### **2. ✅ Código Preparado:**
+
 - Tyler API funcionando localmente
 - Dockerfile criado (já está no projeto)
 - Variáveis de ambiente identificadas
@@ -25,6 +27,7 @@ Este guia mostra como fazer deploy da Tyler API usando apenas o console web do G
 ### **Passo 1: Preparar o Código**
 
 #### **1.1 Comprimir o projeto:**
+
 ```
 1. Vá para a pasta: d:\Projetos\Tyler\backend
 2. Selecione todos os arquivos (Ctrl+A)
@@ -33,12 +36,14 @@ Este guia mostra como fazer deploy da Tyler API usando apenas o console web do G
 ```
 
 #### **1.2 Verificar se Dockerfile existe:**
+
 - ✅ `Dockerfile` (já criado)
 - ✅ `.dockerignore` (já criado)
 
 ### **Passo 2: Acessar Cloud Build**
 
 #### **2.1 Ir para Cloud Build:**
+
 ```
 1. Abra console.cloud.google.com
 2. Selecione seu projeto
@@ -47,7 +52,9 @@ Este guia mostra como fazer deploy da Tyler API usando apenas o console web do G
 ```
 
 #### **2.2 Habilitar APIs:**
+
 Se aparecer aviso sobre APIs:
+
 ```
 1. Clique em "Habilitar API"
 2. Aguarde alguns minutos
@@ -57,6 +64,7 @@ Se aparecer aviso sobre APIs:
 ### **Passo 3: Criar Build**
 
 #### **3.1 Upload do código:**
+
 ```
 1. Clique em "Criar Gatilho" ou "Triggers"
 2. Clique em "+ CRIAR GATILHO"
@@ -69,6 +77,7 @@ Se aparecer aviso sobre APIs:
 ```
 
 #### **3.2 Configurar Build:**
+
 ```
 Configuração:
 - Tipo: Cloud Build configuration file (yaml or json)
@@ -76,48 +85,52 @@ Configuração:
 ```
 
 #### **3.3 Criar cloudbuild.yaml:**
+
 No console, clique em "Editor Online" e crie o arquivo:
 
 ```yaml
 steps:
   # Build da imagem Docker
-  - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build',
-      '-t', 'gcr.io/$PROJECT_ID/tyler-api',
-      '.'
-    ]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/tyler-api", "."]
 
   # Push da imagem para Container Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'push',
-      'gcr.io/$PROJECT_ID/tyler-api'
-    ]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/tyler-api"]
 
   # Deploy no Cloud Run
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args: [
-      'run', 'deploy', 'tyler-api',
-      '--image', 'gcr.io/$PROJECT_ID/tyler-api',
-      '--region', 'us-central1',
-      '--platform', 'managed',
-      '--allow-unauthenticated',
-      '--memory', '1Gi',
-      '--cpu', '1',
-      '--max-instances', '10'
-    ]
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      [
+        "run",
+        "deploy",
+        "tyler-api",
+        "--image",
+        "gcr.io/$PROJECT_ID/tyler-api",
+        "--region",
+        "us-central1",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--memory",
+        "1Gi",
+        "--cpu",
+        "1",
+        "--max-instances",
+        "10",
+      ]
 
 images:
-  - 'gcr.io/$PROJECT_ID/tyler-api'
+  - "gcr.io/$PROJECT_ID/tyler-api"
 
 options:
-  machineType: 'E2_HIGHCPU_8'
+  machineType: "E2_HIGHCPU_8"
 ```
 
 ### **Passo 4: Executar Build**
 
 #### **4.1 Iniciar build:**
+
 ```
 1. Clique em "Executar gatilho" ou "RUN"
 2. Aguarde o build (5-10 minutos)
@@ -125,6 +138,7 @@ options:
 ```
 
 #### **4.2 Verificar sucesso:**
+
 ```
 ✅ Build bem-sucedido = ícone verde
 ❌ Build falhou = ícone vermelho (verificar logs)
@@ -137,6 +151,7 @@ options:
 ### **Passo 1: Abrir Cloud Shell**
 
 #### **1.1 Ativar Cloud Shell:**
+
 ```
 1. No console GCP, clique no ícone ">_" no topo direito
 2. Aguarde o Cloud Shell inicializar
@@ -146,6 +161,7 @@ options:
 ### **Passo 2: Upload do Projeto**
 
 #### **2.1 Upload via interface:**
+
 ```
 1. No editor, clique em "Arquivo" > "Fazer upload de pasta"
 2. Selecione a pasta: d:\Projetos\Tyler\backend
@@ -155,6 +171,7 @@ options:
 ### **Passo 3: Deploy via Terminal**
 
 #### **3.1 No terminal do Cloud Shell:**
+
 ```bash
 # Ir para pasta do projeto
 cd backend
@@ -180,9 +197,10 @@ gcloud run deploy tyler-api \
 ### **Passo 1: Preparar Imagem**
 
 #### **1.1 Build via Cloud Build (simplificado):**
+
 ```
 1. Console GCP > Cloud Build
-2. "Submit a build" 
+2. "Submit a build"
 3. Upload tyler-api-source.zip
 4. Build Type: "Dockerfile"
 5. Image name: "gcr.io/SEU_PROJECT/tyler-api"
@@ -192,12 +210,14 @@ gcloud run deploy tyler-api \
 ### **Passo 2: Cloud Run Interface**
 
 #### **2.1 Acessar Cloud Run:**
+
 ```
 1. Console GCP > Cloud Run
 2. Clique em "CRIAR SERVIÇO"
 ```
 
 #### **2.2 Configurar Serviço:**
+
 ```
 Configuração básica:
 - Nome do serviço: tyler-api
@@ -215,6 +235,7 @@ Autoscaling:
 ```
 
 #### **2.3 Configurar Variáveis:**
+
 ```
 Na seção "Variáveis de ambiente":
 
@@ -222,7 +243,7 @@ Clique em "ADICIONAR VARIÁVEL":
 - Nome: SPRING_PROFILES_ACTIVE
 - Valor: production
 
-- Nome: GCP_PROJECT_ID  
+- Nome: GCP_PROJECT_ID
 - Valor: seu-project-id
 
 - Nome: GCP_BUCKET_NAME
@@ -230,6 +251,7 @@ Clique em "ADICIONAR VARIÁVEL":
 ```
 
 #### **2.4 Configurar Tráfego:**
+
 ```
 Authentication:
 ☑️ Allow unauthenticated invocations
@@ -238,6 +260,7 @@ Authentication:
 ### **Passo 3: Deploy**
 
 #### **3.1 Finalizar:**
+
 ```
 1. Clique em "CRIAR"
 2. Aguarde deploy (2-5 minutos)
@@ -251,6 +274,7 @@ Authentication:
 ### **Passo 1: Secret Manager**
 
 #### **1.1 Acessar Secret Manager:**
+
 ```
 1. Console GCP > Secret Manager
 2. Habilitar API se necessário
@@ -260,6 +284,7 @@ Authentication:
 #### **1.2 Criar Secrets:**
 
 **PagBank Token:**
+
 ```
 - Nome: pagbank-token
 - Valor do secret: SEU_TOKEN_PAGBANK
@@ -267,6 +292,7 @@ Authentication:
 ```
 
 **Firebase Credentials:**
+
 ```
 - Nome: firebase-credentials
 - Upload de arquivo: firebase-admin-sdk.json
@@ -276,6 +302,7 @@ Authentication:
 ### **Passo 2: Conectar ao Cloud Run**
 
 #### **2.1 Editar serviço:**
+
 ```
 1. Cloud Run > tyler-api > "EDITAR E IMPLANTAR NOVA REVISÃO"
 2. Vá para aba "Variáveis e secrets"
@@ -283,6 +310,7 @@ Authentication:
 ```
 
 #### **2.2 Configurar volumes:**
+
 ```
 Secret volume:
 - Nome: firebase-secret
@@ -300,6 +328,7 @@ Secret como variável:
 ## 📊 **Monitoramento via Console**
 
 ### **Dashboard Cloud Run:**
+
 ```
 1. Cloud Run > tyler-api
 2. Aba "MÉTRICAS" - ver CPU, memória, requests
@@ -308,6 +337,7 @@ Secret como variável:
 ```
 
 ### **Teste da API:**
+
 ```
 1. Copie a URL do serviço
 2. Teste: https://TYLER-API-URL/api/health
@@ -321,6 +351,7 @@ Secret como variável:
 ### **Problemas Comuns:**
 
 #### **Build falha:**
+
 ```
 1. Cloud Build > Histórico
 2. Clique no build vermelho
@@ -329,6 +360,7 @@ Secret como variável:
 ```
 
 #### **Serviço não responde:**
+
 ```
 1. Cloud Run > tyler-api > "LOGS"
 2. Filtrar por severity: ERROR
@@ -337,6 +369,7 @@ Secret como variável:
 ```
 
 #### **Timeout:**
+
 ```
 1. Cloud Run > tyler-api > "EDITAR"
 2. Aumentar "Request timeout"
@@ -348,18 +381,21 @@ Secret como variável:
 ## ✅ **Checklist Final**
 
 ### **Antes do Deploy:**
+
 - [ ] ✅ Projeto GCP criado e billing ativo
 - [ ] ✅ APIs habilitadas (Cloud Build, Cloud Run)
 - [ ] ✅ Código compactado em ZIP
 - [ ] ✅ Dockerfile verificado
 
 ### **Durante o Deploy:**
+
 - [ ] ✅ Build executado com sucesso
 - [ ] ✅ Imagem criada no Container Registry
 - [ ] ✅ Serviço Cloud Run criado
 - [ ] ✅ Variáveis de ambiente configuradas
 
 ### **Pós Deploy:**
+
 - [ ] ✅ URL funcionando
 - [ ] ✅ Health check retornando 200
 - [ ] ✅ Swagger UI carregando
@@ -370,9 +406,10 @@ Secret como variável:
 ## 🎯 **URLs Finais**
 
 Após deploy bem-sucedido:
+
 ```
 🏠 Aplicação: https://tyler-api-xxx.a.run.app
-🏥 Health: https://tyler-api-xxx.a.run.app/api/health  
+🏥 Health: https://tyler-api-xxx.a.run.app/api/health
 📚 Swagger: https://tyler-api-xxx.a.run.app/swagger-ui.html
 🛍️ API: https://tyler-api-xxx.a.run.app/api/products
 ```
@@ -382,11 +419,13 @@ Após deploy bem-sucedido:
 ## 💡 **Dicas Importantes**
 
 ### **Para Desenvolvimento:**
+
 - Use Cloud Shell para testes rápidos
 - Monitore custos no dashboard
 - Configure alertas de billing
 
 ### **Para Produção:**
+
 - Use Secret Manager para credenciais
 - Configure domínio personalizado
 - Implemente monitoring com alertas

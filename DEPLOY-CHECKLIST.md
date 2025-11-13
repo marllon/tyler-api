@@ -3,6 +3,7 @@
 ## 🎯 **Opção 1: Cloud Build Automático (Mais Fácil)**
 
 ### **📤 1. Preparar Arquivos**
+
 ```
 □ Ir para: d:\Projetos\Tyler\backend
 □ Selecionar todos os arquivos (Ctrl+A)
@@ -11,6 +12,7 @@
 ```
 
 ### **🌐 2. Acessar Google Cloud**
+
 ```
 □ Abrir: console.cloud.google.com
 □ Selecionar seu projeto (canto superior)
@@ -18,14 +20,16 @@
 ```
 
 ### **🔧 3. Habilitar APIs**
+
 ```
 □ Menu ☰ > "APIs e serviços" > "Biblioteca"
 □ Pesquisar: "Cloud Build API" > Habilitar
-□ Pesquisar: "Cloud Run API" > Habilitar  
+□ Pesquisar: "Cloud Run API" > Habilitar
 □ Pesquisar: "Container Registry API" > Habilitar
 ```
 
 ### **🏗️ 4. Cloud Build**
+
 ```
 □ Menu ☰ > "Cloud Build"
 □ Clicar em "Histórico" (lateral esquerda)
@@ -40,6 +44,7 @@ Configurações:
 ```
 
 ### **⏰ 5. Aguardar Build**
+
 ```
 □ Acompanhar progresso (5-10 minutos)
 □ Ícone verde = Sucesso ✅
@@ -51,6 +56,7 @@ Configurações:
 ## 🎯 **Opção 2: Cloud Shell (Interface Web)**
 
 ### **☁️ 1. Abrir Cloud Shell**
+
 ```
 □ No console GCP, clicar no ícone ">_" (canto superior direito)
 □ Aguardar terminal carregar
@@ -58,6 +64,7 @@ Configurações:
 ```
 
 ### **📤 2. Upload do Projeto**
+
 ```
 □ No editor, "Arquivo" > "Fazer upload de pasta"
 □ Selecionar pasta: d:\Projetos\Tyler\backend
@@ -65,12 +72,13 @@ Configurações:
 ```
 
 ### **💻 3. Comandos no Terminal**
+
 ```
 □ Digitar: cd backend
 □ Digitar: gcloud builds submit --tag gcr.io/$GOOGLE_CLOUD_PROJECT/tyler-api
 □ Aguardar build (5-10 minutos)
 
-□ Depois: 
+□ Depois:
 gcloud run deploy tyler-api \
   --image gcr.io/$GOOGLE_CLOUD_PROJECT/tyler-api \
   --platform managed \
@@ -85,6 +93,7 @@ gcloud run deploy tyler-api \
 ## ⚙️ **Configurar Variáveis de Ambiente**
 
 ### **🔗 1. Acessar Cloud Run**
+
 ```
 □ Menu ☰ > "Cloud Run"
 □ Clicar no serviço "tyler-api"
@@ -92,6 +101,7 @@ gcloud run deploy tyler-api \
 ```
 
 ### **📝 2. Adicionar Variáveis**
+
 ```
 □ Aba "Variáveis e secrets"
 □ Em "Variáveis de ambiente", clicar "+ADICIONAR VARIÁVEL"
@@ -109,6 +119,7 @@ Adicionar uma por vez:
 ## 🔐 **Configurar Secrets (Opcional)**
 
 ### **🗝️ 1. Secret Manager**
+
 ```
 □ Menu ☰ > "Secret Manager"
 □ Se aparecer "Habilitar API" > Clicar
@@ -121,6 +132,7 @@ Para PagBank:
 ```
 
 ### **🔗 2. Conectar ao Cloud Run**
+
 ```
 □ Voltar para Cloud Run > tyler-api > "EDITAR"
 □ Aba "Variáveis e secrets"
@@ -137,12 +149,14 @@ Para PagBank:
 ## 🧪 **Testar a API**
 
 ### **✅ 1. Obter URL**
+
 ```
 □ Cloud Run > tyler-api
 □ Copiar URL (algo como: https://tyler-api-xxx.a.run.app)
 ```
 
 ### **🏥 2. Testar Endpoints**
+
 ```
 □ Abrir nova aba do navegador
 □ Testar: SUA_URL/api/health
@@ -157,6 +171,7 @@ Para PagBank:
 ## 🚨 **Se Algo der Errado**
 
 ### **📊 Verificar Logs**
+
 ```
 □ Cloud Run > tyler-api > aba "LOGS"
 □ Procurar mensagens de erro em vermelho
@@ -164,6 +179,7 @@ Para PagBank:
 ```
 
 ### **🔧 Problemas Comuns**
+
 ```
 Build falhou:
 □ Cloud Build > Histórico > Clicar no build vermelho
@@ -181,13 +197,15 @@ Serviço não responde:
 ## 🎉 **Sucesso!**
 
 ### **URLs Funcionais:**
+
 ```
 ✅ Health Check: https://tyler-api-xxx.a.run.app/api/health
-✅ Swagger UI: https://tyler-api-xxx.a.run.app/swagger-ui.html  
+✅ Swagger UI: https://tyler-api-xxx.a.run.app/swagger-ui.html
 ✅ API Products: https://tyler-api-xxx.a.run.app/api/products
 ```
 
 ### **Próximos Passos:**
+
 ```
 □ Configurar bucket do Google Cloud Storage
 □ Fazer upload das credenciais Firebase

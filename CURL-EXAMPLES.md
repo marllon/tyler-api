@@ -1,6 +1,7 @@
 # 📸 **Exemplos de CURL - POST Produto com Imagens**
 
 ## **🚀 Endpoint Unificado**
+
 - **URL**: `POST /api/products`
 - **Content-Type**: `multipart/form-data`
 - **Parâmetros**: `productData` (JSON) + `images` (arquivos)
@@ -10,6 +11,7 @@
 ## **📋 Exemplos Práticos**
 
 ### **1. 🛍️ Produto com 1 Imagem**
+
 ```bash
 curl -X POST "http://localhost:8080/api/products" \
   -F "productData={
@@ -32,6 +34,7 @@ curl -X POST "http://localhost:8080/api/products" \
 ```
 
 ### **2. 🛍️ Produto com Múltiplas Imagens**
+
 ```bash
 curl -X POST "http://localhost:8080/api/products" \
   -F "productData={
@@ -57,6 +60,7 @@ curl -X POST "http://localhost:8080/api/products" \
 ```
 
 ### **3. 🛍️ Produto SEM Imagens**
+
 ```bash
 curl -X POST "http://localhost:8080/api/products" \
   -F "productData={
@@ -76,6 +80,7 @@ curl -X POST "http://localhost:8080/api/products" \
 ```
 
 ### **4. 🛍️ Produto Mínimo (Campos Obrigatórios)**
+
 ```bash
 curl -X POST "http://localhost:8080/api/products" \
   -F "productData={
@@ -93,6 +98,7 @@ curl -X POST "http://localhost:8080/api/products" \
 ## **🔐 Com Autenticação JWT**
 
 ### **Usando Token Firebase:**
+
 ```bash
 curl -X POST "http://localhost:8080/api/products" \
   -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..." \
@@ -112,6 +118,7 @@ curl -X POST "http://localhost:8080/api/products" \
 ## **📱 Usando PowerShell (Windows)**
 
 ### **Exemplo com Invoke-RestMethod:**
+
 ```powershell
 $uri = "http://localhost:8080/api/products"
 $productData = @{
@@ -136,34 +143,37 @@ Invoke-RestMethod -Uri $uri -Method Post -Form $form
 ## **📋 Estrutura do JSON productData**
 
 ### **✅ Campos Obrigatórios:**
+
 ```json
 {
-  "name": "string",           // Nome do produto
-  "description": "string",    // Descrição
-  "price": 99.99,            // Preço (double)
-  "category": "string",       // Categoria
-  "stock": 10                // Estoque (int)
+  "name": "string", // Nome do produto
+  "description": "string", // Descrição
+  "price": 99.99, // Preço (double)
+  "category": "string", // Categoria
+  "stock": 10 // Estoque (int)
 }
 ```
 
 ### **🔧 Campos Opcionais:**
+
 ```json
 {
-  "active": true,                    // Ativo (default: true)
-  "brand": "string",                 // Marca
-  "model": "string",                 // Modelo
-  "weight": 100.5,                   // Peso em gramas
-  "dimensions": "10x5x2cm",          // Dimensões
-  "color": "string",                 // Cor
-  "warranty": 12,                    // Garantia em meses
-  "tags": ["tag1", "tag2"],         // Lista de tags
-  "primaryImageIndex": 0             // Índice da imagem principal (0-9)
+  "active": true, // Ativo (default: true)
+  "brand": "string", // Marca
+  "model": "string", // Modelo
+  "weight": 100.5, // Peso em gramas
+  "dimensions": "10x5x2cm", // Dimensões
+  "color": "string", // Cor
+  "warranty": 12, // Garantia em meses
+  "tags": ["tag1", "tag2"], // Lista de tags
+  "primaryImageIndex": 0 // Índice da imagem principal (0-9)
 }
 ```
 
 ---
 
 ## **📸 Formatos de Imagem Aceitos**
+
 - ✅ **JPG/JPEG**: `image.jpg`
 - ✅ **PNG**: `image.png`
 - ✅ **WEBP**: `image.webp`
@@ -175,6 +185,7 @@ Invoke-RestMethod -Uri $uri -Method Post -Form $form
 ## **✅ Resposta de Sucesso (201 Created)**
 
 ### **JSON Retornado:**
+
 ```json
 {
   "id": "product_abc123",
@@ -212,6 +223,7 @@ Invoke-RestMethod -Uri $uri -Method Post -Form $form
 ## **❌ Erros Comuns**
 
 ### **400 Bad Request:**
+
 ```bash
 # JSON inválido no productData
 curl -X POST "http://localhost:8080/api/products" \
@@ -220,6 +232,7 @@ curl -X POST "http://localhost:8080/api/products" \
 ```
 
 ### **413 Payload Too Large:**
+
 ```bash
 # Arquivo muito grande (>10MB)
 curl -X POST "http://localhost:8080/api/products" \
@@ -228,6 +241,7 @@ curl -X POST "http://localhost:8080/api/products" \
 ```
 
 ### **415 Unsupported Media Type:**
+
 ```bash
 # Formato não suportado
 curl -X POST "http://localhost:8080/api/products" \
@@ -240,6 +254,7 @@ curl -X POST "http://localhost:8080/api/products" \
 ## **🧪 Teste Rápido**
 
 ### **1. Criar arquivo de teste:**
+
 ```bash
 # Criar JSON em arquivo separado
 echo '{
@@ -258,6 +273,7 @@ curl -X POST "http://localhost:8080/api/products" \
 ```
 
 ### **2. Verificar se API está rodando:**
+
 ```bash
 curl -X GET "http://localhost:8080/api/health"
 # Resposta esperada: {"status":"healthy",...}
