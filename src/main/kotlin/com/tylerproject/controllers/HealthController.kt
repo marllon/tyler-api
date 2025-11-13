@@ -72,18 +72,14 @@ class HealthController : HealthIndicator {
     /** 🔍 Health Indicator para Spring Actuator */
     override fun health(): Health {
         return try {
-            // Aqui você pode adicionar checks mais complexos:
-            // - Conectividade com PagBank
-            // - Conectividade com Firebase
-            // - Status do banco de dados
-
+            // Simplified health check para Cloud Run
             Health.up()
                     .withDetail("service", "Tyler API")
                     .withDetail("version", "2.0.0-spring-boot")
-                    .withDetail("pagbank", "connected")
-                    .withDetail("firebase", "connected")
+                    .withDetail("status", "running")
                     .build()
         } catch (e: Exception) {
+            logger.error("Health check failed", e)
             Health.down().withDetail("error", e.message).build()
         }
     }

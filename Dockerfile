@@ -33,14 +33,14 @@ RUN adduser --disabled-password --gecos '' appuser && \
 USER appuser
 
 # Configurações JVM otimizadas para Cloud Run
-ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Dspring.profiles.active=production"
 
 # Expor porta (Cloud Run usa $PORT)
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8080}/api/health || exit 1
+# Health check com timeout maior para Cloud Run
+HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=5 \
+    CMD curl -f http://localhost:${PORT:-8080}/actuator/health || exit 1
 
-# Comando de inicialização
-CMD ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -jar app.jar"]
+# Comando de inicialização com logs detalhados
+CMD ["sh", "-c", "echo '🚀 Iniciando Tyler API...' && java $JAVA_OPTS -Dserver.port=${PORT:-8080} -jar app.jar"]

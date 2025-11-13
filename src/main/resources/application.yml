@@ -30,6 +30,8 @@ spring:
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
+  servlet:
+    context-path: /
 
 # 📊 Actuator - Monitoramento
 management:
@@ -41,13 +43,6 @@ management:
   endpoint:
     health:
       show-details: when-authorized
-
-# 🚀 Server Configuration
-server:
-  port: 8080
-  servlet:
-    context-path: /
-
 firebase:
   project-id: tyler-dev-c2420
   service-account-json: ${FIREBASE_CREDENTIALS_JSON:}
@@ -94,7 +89,7 @@ spring:
   config:
     activate:
       on-profile: production
-      
+
 # 📊 Actuator otimizado para produção
 management:
   endpoints:
@@ -104,7 +99,7 @@ management:
   endpoint:
     health:
       show-details: when-authorized
-      
+
 # 📝 Logging para produção
 logging:
   level:
@@ -114,7 +109,7 @@ logging:
     org.hibernate: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    
+
 # 🗂️ Google Cloud Storage - Produção
 app:
   gcp:
@@ -123,7 +118,7 @@ app:
     storage-credentials-json: ${GCP_STORAGE_CREDENTIALS_JSON}
     base-url: https://storage.googleapis.com
 
-# 🔥 Firebase - Produção  
+# 🔥 Firebase - Produção
 firebase:
   service-account-json: ${FIREBASE_CREDENTIALS_JSON}
 

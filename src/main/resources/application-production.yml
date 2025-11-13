@@ -1,18 +1,42 @@
 # 🚀 Profile Produção - Google Cloud Run
 # Configurações para ambiente de produção
 
-PAGBANK_TOKEN: ${PAGBANK_TOKEN}
+spring:
+  config:
+    activate:
+      on-profile: production
 
+# 🖥️ Server Configuration para Cloud Run
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+
+# 📊 Management para Cloud Run
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# 🔥 Firebase - usar credenciais padrão do ambiente
 firebase:
-  project-id: tyler-prd
-  service-account-key: firebase-admin-sdk.json
+  project-id: ${GCP_PROJECT_ID:tyler-dev-c2420}
+  service-account-json: ${FIREBASE_CREDENTIALS_JSON:}
 
-# �️ Google Cloud Storage - Production
+# 🗂️ Google Cloud Storage - usar credenciais padrão do ambiente
 app:
   gcp:
-    project-id: tyler-prd
-    bucket-name: tyler-product-images-prd
-    storage-credentials-path: tyler-storage-credentials-prd.json
+    project-id: ${GCP_PROJECT_ID:tyler-dev-c2420}
+    bucket-name: ${GCP_BUCKET_NAME:tyler-products-images-dev}
+    storage-credentials-json: ${GCP_STORAGE_CREDENTIALS_JSON:}
+    base-url: https://storage.googleapis.com
+
+# 💳 PagBank Configuration
+pagbank:
+  token: ${PAGBANK_TOKEN:}
 
 # �📝 Logging - Otimizado para produção
 logging:
