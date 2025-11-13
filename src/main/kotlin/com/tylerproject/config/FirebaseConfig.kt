@@ -39,13 +39,20 @@ class FirebaseConfig {
                                     ByteArrayInputStream(serviceAccountJson.toByteArray())
                             )
                         } else {
-                            // Fallback: usar arquivo local
-                            logger.info(
-                                    "Carregando credenciais Firebase do arquivo: $serviceAccountKeyPath"
-                            )
-                            val serviceAccount =
-                                    ClassPathResource(serviceAccountKeyPath).inputStream
-                            GoogleCredentials.fromStream(serviceAccount)
+                            // Fallback: usar arquivo local se existir
+                            try {
+                                logger.info(
+                                        "Carregando credenciais Firebase do arquivo: $serviceAccountKeyPath"
+                                )
+                                val serviceAccount =
+                                        ClassPathResource(serviceAccountKeyPath).inputStream
+                                GoogleCredentials.fromStream(serviceAccount)
+                            } catch (e: Exception) {
+                                logger.warn(
+                                        "⚠️ Credenciais Firebase não encontradas, usando credenciais padrão do ambiente"
+                                )
+                                GoogleCredentials.getApplicationDefault()
+                            }
                         }
 
                 val options =

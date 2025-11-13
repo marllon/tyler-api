@@ -27,16 +27,19 @@ class TokenConfiguration {
      * - Produção: Cloud Run injeta via Secret Manager
      */
     @Bean("pagbankToken")
-    fun pagBankToken(@Value("\${pagbank.token}") token: String): String {
+    fun pagBankToken(@Value("\${pagbank.token:}") token: String): String {
         return token
     }
 
     /** 🏦 PagBank Provider configurado com ApplicationContext */
     @Bean
     fun pagBankProvider(
-            @Value("\${pagbank.token}") token: String,
+            @Value("\${pagbank.token:}") token: String,
             applicationContext: ApplicationContext
     ): PagBankProvider {
+        if (token.isBlank()) {
+            println("⚠️ PAGBANK_TOKEN está vazio, PagBank Provider será criado mas pode falhar em operações reais")
+        }
         return PagBankProvider(token, applicationContext)
     }
 }

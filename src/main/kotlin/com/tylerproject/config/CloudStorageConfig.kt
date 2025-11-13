@@ -37,16 +37,30 @@ class CloudStorageConfig {
                         ByteArrayInputStream(storageCredentialsJson.toByteArray())
                 )
             } else {
-                // Fallback: usar arquivo local
-                logger.info(
-                        "Carregando credenciais Google Cloud Storage do arquivo: $storageCredentialsPath"
-                )
-                val resource = ClassPathResource(storageCredentialsPath)
-                GoogleCredentials.fromStream(resource.inputStream)
+                // Fallback: usar arquivo local se existir
+                try {
+                    logger.info(
+                            "Carregando credenciais Google Cloud Storage do arquivo: $storageCredentialsPath"
+                    )
+                    val resource = ClassPathResource(storageCredentialsPath)
+                    GoogleCredentials.fromStream(resource.inputStream)
+                } catch (e: Exception) {
+                    logger.warn(
+                            "⚠️ Credenciais GCS não encontradas, usando credenciais padrão do ambiente"
+                    )
+                    GoogleCredentials.getApplicationDefault()
+                }
             }
         } catch (e: Exception) {
             logger.error("Erro ao carregar credenciais Google Cloud Storage: ${e.message}", e)
-            throw e
+            // Em vez de fazer throw, retorna credenciais padrão
+            try {
+                logger.warn("Tentando usar credenciais padrão como último recurso")
+                GoogleCredentials.getApplicationDefault()
+            } catch (defaultError: Exception) {
+                logger.error("Falha ao carregar qualquer credencial: ${defaultError.message}")
+                throw e
+            }
         }
     }
 
