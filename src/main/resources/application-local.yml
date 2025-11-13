@@ -14,7 +14,7 @@ firebase:
 app:
   gcp:
     project-id: tyler-dev-c2420
-    bucket-name: tyler-product-images
+    bucket-name: tyler-products-images-dev
     storage-credentials-path: tyler-storage-credentials.json
 
 # �📝 Logging - Verbose para desenvolvimento

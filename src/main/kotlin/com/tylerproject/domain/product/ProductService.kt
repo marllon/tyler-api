@@ -50,45 +50,34 @@ class ProductService(
             images: Array<MultipartFile>,
             createdBy: String? = null
     ): ProductResponse {
-        val now = LocalDateTime.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
-        val id = UUID.randomUUID().toString()
-
-        // Upload das imagens primeiro
-        val uploadedImages =
-                imageUploadService.uploadProductImages(
-                        productId = id,
-                        files = images,
-                        primaryImageIndex = request.primaryImageIndex
-                )
-
-        val product =
-                Product(
-                        id = id,
+        // 1. Criar produto básico primeiro
+        val basicRequest =
+                CreateProductRequest(
                         name = request.name,
                         description = request.description,
                         price = request.price,
-                        images = uploadedImages,
-                        active = request.active,
                         category = request.category,
                         stock = request.stock,
+                        active = request.active,
                         brand = request.brand,
                         model = request.model,
                         weight = request.weight,
                         dimensions = request.dimensions,
                         color = request.color,
                         warranty = request.warranty,
-                        tags = request.tags,
-                        createdAt = now,
-                        updatedAt = now,
-                        createdBy = createdBy
+                        tags = request.tags
                 )
 
-        val savedProduct = productRepository.save(product)
-        logger.info(
-                "Product with images created: ${savedProduct.name} (${savedProduct.id}) - ${uploadedImages.size} images"
-        )
+        val productResponse = createProduct(basicRequest, createdBy)
 
-        return savedProduct.toResponse()
+        // 2. Adicionar imagens se fornecidas
+        images.forEachIndexed { index, file ->
+            val isPrimary = index == request.primaryImageIndex
+            uploadProductImage(productResponse.id, file, isPrimary)
+        }
+
+        // 3. Retornar produto atualizado com imagens
+        return getProductById(productResponse.id) ?: productResponse
     }
 
     fun getProductById(id: String): ProductResponse? {
@@ -96,35 +85,7 @@ class ProductService(
         return product?.toResponse()
     }
 
-    // ✅ Método deprecated - manter para compatibilidade
-    @Deprecated("Use getProductsPaginated() with cursor-based pagination")
-    fun getAllProducts(
-            page: Int = 1,
-            pageSize: Int = 20,
-            activeOnly: Boolean = true,
-            category: String? = null
-    ): ProductListResponse {
-        // Converter para nova API
-        val request =
-                PageRequest(
-                        limit = pageSize,
-                        cursor = null,
-                        sortBy = ProductSortField.CREATED_AT.fieldName,
-                        sortDirection = SortDirection.DESC
-                )
-
-        val productPage = productRepository.findAll(request, activeOnly, category)
-
-        return ProductListResponse(
-                products = productPage.items.map { it.toResponse() },
-                totalPages = -1,
-                currentPage = page,
-                totalProducts = -1L,
-                pageSize = productPage.pageSize
-        )
-    }
-
-    // ✅ Nova API otimizada para NoSQL
+    // ✅ API otimizada para NoSQL com cursor-based pagination
     fun getProductsPaginated(
             limit: Int = 20,
             cursor: String? = null,
@@ -220,29 +181,61 @@ class ProductService(
         )
     }
 
-    // ✅ Métodos específicos para NoSQL - aproveitam queries otimizadas
+    fun uploadProductImage(
+            productId: String,
+            file: MultipartFile,
+            isPrimary: Boolean
+    ): ImageUploadResponse {
+        logger.info("Uploading image for product: $productId, isPrimary: $isPrimary")
 
-    fun getProductsByCategory(category: String, limit: Int = 20): List<ProductResponse> {
-        logger.info("Getting products by category: $category (limit: $limit)")
-        return productRepository.findByCategory(category, limit).map { it.toResponse() }
+        val product =
+                productRepository.findById(productId)
+                        ?: throw IllegalArgumentException("Product not found: $productId")
+
+        val newImage = imageUploadService.uploadSingleImage(productId, file, isPrimary)
+
+        val updatedImages =
+                if (isPrimary) {
+                    product.images.map { it.copy(isPrimary = false) } +
+                            newImage.copy(isPrimary = true)
+                } else {
+                    product.images + newImage
+                }
+
+        val updatedProduct = product.copy(images = updatedImages)
+        logger.info("Saving updated product with ${updatedImages.size} images")
+        val savedProduct = productRepository.save(updatedProduct)
+        logger.info(
+                "Product saved successfully. Saved product has ${savedProduct.images.size} images"
+        )
+
+        val uploadResponse = imageUploadService.toImageUploadResponse(newImage)
+
+        logger.info(
+                "Image uploaded and product updated successfully for product: $productId, imageId: ${uploadResponse.id}"
+        )
+        return uploadResponse
     }
 
-    fun getProductsByPriceRange(minPrice: Double, maxPrice: Double): List<ProductResponse> {
-        logger.info("Getting products by price range: $minPrice - $maxPrice")
-        return productRepository.findByPriceRange(minPrice, maxPrice).map { it.toResponse() }
-    }
+    fun removeProductImage(productId: String, imageId: String) {
+        logger.info("Removing image $imageId from product: $productId")
 
-    fun searchProductsByName(searchTerm: String, limit: Int = 20): List<ProductResponse> {
-        logger.info("Searching products by name: $searchTerm")
-        return productRepository.searchByName(searchTerm, limit).map { it.toResponse() }
-    }
+        val product =
+                productRepository.findById(productId)
+                        ?: throw IllegalArgumentException("Product not found: $productId")
 
-    fun getInactiveProducts(): List<ProductResponse> {
-        logger.info("Getting inactive products")
-        return productRepository.findByActiveStatus(false).map { it.toResponse() }
-    }
+        if (product.images.none { it.id == imageId }) {
+            throw IllegalArgumentException("Image not found: $imageId")
+        }
 
-    fun getTotalProductsCount(): Int {
-        return productRepository.countTotal()
+        imageUploadService.removeProductImage(product, imageId)
+
+        val updatedImages = product.images.filter { it.id != imageId }
+        val updatedProduct = product.copy(images = updatedImages)
+        productRepository.save(updatedProduct)
+
+        logger.info(
+                "Image removed and product updated successfully for product: $productId, imageId: $imageId"
+        )
     }
 }

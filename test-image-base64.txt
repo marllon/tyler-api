@@ -1,0 +1,2 @@
+# Imagem de teste base64 (pixel 1x1 transparente PNG)
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU8j+gAAAABJRU5ErkJggg==

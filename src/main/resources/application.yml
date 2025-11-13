@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: local
+    active: ${SPRING_PROFILES_ACTIVE:local}
   application:
     name: tyler-api
 
@@ -18,13 +18,18 @@ spring:
       allowed-headers: "*"
       allow-credentials: false
 
-  # 📁 File Upload Configuration  
+  # 📁 File Upload Configuration
   servlet:
     multipart:
       enabled: true
       max-file-size: 10MB
       max-request-size: 50MB
       file-size-threshold: 2KB
+
+# 🖥️ Server Configuration
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
 
 # 📊 Actuator - Monitoramento
 management:
@@ -50,12 +55,10 @@ firebase:
 # 🗂️ Google Cloud Storage Configuration
 app:
   gcp:
-    project-id: ${GCP_PROJECT_ID:tyler-dev}
+    project-id: ${GCP_PROJECT_ID:tyler-dev-c2420}
     bucket-name: ${GCP_BUCKET_NAME:tyler-products-images-dev}
     storage-credentials-path: ${GCP_STORAGE_CREDENTIALS_PATH:tyler-storage-credentials.json}
     base-url: https://storage.googleapis.com
-
-
 
 # �💳 Payment Configuration
 pagbank:
@@ -69,3 +72,63 @@ logging:
     org.springframework.web: DEBUG
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# 📚 Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    show-extensions: true
+    show-common-extensions: true
+  show-actuator: true
+
+---
+# 🚀 Configuração para Produção (Cloud Run)
+spring:
+  config:
+    activate:
+      on-profile: production
+      
+# 📊 Actuator otimizado para produção
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      
+# 📝 Logging para produção
+logging:
+  level:
+    com.tylerproject: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    
+# 🗂️ Google Cloud Storage - Produção
+app:
+  gcp:
+    project-id: ${GCP_PROJECT_ID}
+    bucket-name: ${GCP_BUCKET_NAME}
+    storage-credentials-path: ${GCP_STORAGE_CREDENTIALS_PATH:/app/config/storage-credentials.json}
+    base-url: https://storage.googleapis.com
+
+# 🔥 Firebase - Produção  
+firebase:
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:/app/config/firebase-credentials.json}
+
+# 💳 PagBank - Produção
+pagbank:
+  token: ${PAGBANK_TOKEN}
+  webhook-url: ${PAGBANK_WEBHOOK_URL}

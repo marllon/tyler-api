@@ -1,0 +1,32 @@
+# Arquivos e diretórios a serem ignorados no build Docker
+target/
+.mvn/
+mvnw
+mvnw.cmd
+*.log
+*.tmp
+.git/
+.gitignore
+README.md
+*.md
+.env
+.env.local
+node_modules/
+*.iml
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Arquivos de configuração local
+application-local.yml
+*.backup
+*.bak
+
+# Arquivos de teste
+src/test/
+
+# Arquivos de credenciais (devem ser passados via secrets)
+firebase-admin-sdk.json
+tyler-storage-credentials.json
+*-credentials.json

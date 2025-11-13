@@ -4,6 +4,7 @@ import com.google.cloud.storage.BlobId
 import com.google.cloud.storage.BlobInfo
 import com.google.cloud.storage.Storage
 import com.tylerproject.domain.product.ImageUploadResponse
+import com.tylerproject.domain.product.Product
 import com.tylerproject.domain.product.ProductImage
 import java.io.IOException
 import java.time.LocalDateTime
@@ -214,6 +215,26 @@ class ImageUploadService(
                 logger.warn("Failed to refresh URL for image ${image.id}: ${e.message}")
                 image // Retorna a imagem original em caso de erro
             }
+        }
+    }
+
+    fun removeProductImage(product: Product, imageId: String) {
+        val imageToRemove =
+                product.images.find { it.id == imageId }
+                        ?: throw IllegalArgumentException("Image not found: $imageId")
+
+        try {
+            val objectPath = extractObjectPathFromUrl(imageToRemove.url)
+            val blobId = BlobId.of(bucketName, objectPath)
+
+            val deleted = storage.delete(blobId)
+            if (deleted) {
+                logger.info("Image deleted from storage: $objectPath")
+            } else {
+                logger.warn("Image not found in storage: $objectPath")
+            }
+        } catch (e: Exception) {
+            logger.error("Error deleting image from storage: ${e.message}", e)
         }
     }
 

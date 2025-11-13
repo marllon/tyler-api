@@ -1,25 +1,24 @@
 package com.tylerproject.domain.product
 
-import kotlinx.serialization.Serializable
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 
-@Serializable
-data class CreateProductRequest(
-        val name: String,
-        val description: String,
-        val price: Double,
-        val category: String,
-        val stock: Int,
-        val active: Boolean = true,
-        val brand: String? = null,
-        val model: String? = null,
-        val weight: Double? = null,
-        val dimensions: String? = null,
-        val color: String? = null,
-        val warranty: Int? = null,
-        val tags: List<String>? = null
+data class CreateProductRequest @JsonCreator constructor(
+        @JsonProperty("name") val name: String,
+        @JsonProperty("description") val description: String,
+        @JsonProperty("price") val price: Double,
+        @JsonProperty("category") val category: String,
+        @JsonProperty("stock") val stock: Int,
+        @JsonProperty("active") val active: Boolean = true,
+        @JsonProperty("brand") val brand: String? = null,
+        @JsonProperty("model") val model: String? = null,
+        @JsonProperty("weight") val weight: Double? = null,
+        @JsonProperty("dimensions") val dimensions: String? = null,
+        @JsonProperty("color") val color: String? = null,
+        @JsonProperty("warranty") val warranty: Int? = null,
+        @JsonProperty("tags") val tags: List<String>? = null
 )
 
-@Serializable
 data class ImageUploadResponse(
         val id: String,
         val url: String,
@@ -29,42 +28,39 @@ data class ImageUploadResponse(
         val isPrimary: Boolean
 )
 
-@Serializable
-data class ProductWithImagesRequest(
-        val name: String,
-        val description: String,
-        val price: Double,
-        val category: String,
-        val stock: Int,
-        val active: Boolean = true,
-        val brand: String? = null,
-        val model: String? = null,
-        val weight: Double? = null,
-        val dimensions: String? = null,
-        val color: String? = null,
-        val warranty: Int? = null,
-        val tags: List<String>? = null,
-        val primaryImageIndex: Int = 0 // Índice da imagem principal nas imagens enviadas
+data class ProductWithImagesRequest @JsonCreator constructor(
+        @JsonProperty("name") val name: String,
+        @JsonProperty("description") val description: String,
+        @JsonProperty("price") val price: Double,
+        @JsonProperty("category") val category: String,
+        @JsonProperty("stock") val stock: Int,
+        @JsonProperty("active") val active: Boolean = true,
+        @JsonProperty("brand") val brand: String? = null,
+        @JsonProperty("model") val model: String? = null,
+        @JsonProperty("weight") val weight: Double? = null,
+        @JsonProperty("dimensions") val dimensions: String? = null,
+        @JsonProperty("color") val color: String? = null,
+        @JsonProperty("warranty") val warranty: Int? = null,
+        @JsonProperty("tags") val tags: List<String>? = null,
+        @JsonProperty("primaryImageIndex") val primaryImageIndex: Int = 0 // Índice da imagem principal nas imagens enviadas
 )
 
-@Serializable
-data class UpdateProductRequest(
-        val name: String? = null,
-        val description: String? = null,
-        val price: Double? = null,
-        val category: String? = null,
-        val stock: Int? = null,
-        val active: Boolean? = null,
-        val brand: String? = null,
-        val model: String? = null,
-        val weight: Double? = null,
-        val dimensions: String? = null,
-        val color: String? = null,
-        val warranty: Int? = null,
-        val tags: List<String>? = null
+data class UpdateProductRequest @JsonCreator constructor(
+        @JsonProperty("name") val name: String? = null,
+        @JsonProperty("description") val description: String? = null,
+        @JsonProperty("price") val price: Double? = null,
+        @JsonProperty("category") val category: String? = null,
+        @JsonProperty("stock") val stock: Int? = null,
+        @JsonProperty("active") val active: Boolean? = null,
+        @JsonProperty("brand") val brand: String? = null,
+        @JsonProperty("model") val model: String? = null,
+        @JsonProperty("weight") val weight: Double? = null,
+        @JsonProperty("dimensions") val dimensions: String? = null,
+        @JsonProperty("color") val color: String? = null,
+        @JsonProperty("warranty") val warranty: Int? = null,
+        @JsonProperty("tags") val tags: List<String>? = null
 )
 
-@Serializable
 data class ProductResponse(
         val id: String,
         val name: String,
@@ -86,7 +82,6 @@ data class ProductResponse(
         val updatedAt: String? = null
 )
 
-@Serializable
 @Deprecated("Use ProductPageResponse with cursor-based pagination")
 data class ProductListResponse(
         val products: List<ProductResponse>,
@@ -96,7 +91,6 @@ data class ProductListResponse(
         val pageSize: Int
 )
 
-@Serializable
 data class ProductPageResponse(
         val products: List<ProductResponse>,
         val pageSize: Int,
@@ -110,7 +104,6 @@ data class ProductPageResponse(
         val count: Int = products.size
 )
 
-@Serializable
 data class ProductDeletedResponse(
         val message: String,
         val deletedProductId: String,

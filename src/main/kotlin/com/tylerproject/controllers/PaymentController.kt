@@ -1,6 +1,10 @@
 package com.tylerproject.controllers
 
 import com.tylerproject.providers.PagBankProvider
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,13 +21,37 @@ import org.springframework.web.bind.annotation.*
  */
 @RestController
 @RequestMapping("/api/payments")
-@CrossOrigin(origins = ["*"]) // Configure conforme necessário
+@CrossOrigin(origins = ["*"])
+@Tag(
+        name = "💳 Payments",
+        description = "API de pagamentos PIX via PagBank para doações e checkout"
+)
 class PaymentController @Autowired constructor(private val pagBankProvider: PagBankProvider) {
 
         private val logger = LoggerFactory.getLogger(PaymentController::class.java)
 
-        /** � Criar Checkout PIX para doação - PagBank API OFICIAL */
         @PostMapping("/checkout")
+        @Operation(
+                summary = "💰 Criar checkout PIX para doação",
+                description = "Cria um checkout PIX via PagBank para processar doações",
+                tags = ["PIX", "Checkout"]
+        )
+        @ApiResponses(
+                value =
+                        [
+                                ApiResponse(
+                                        responseCode = "200",
+                                        description = "✅ Checkout criado com sucesso"
+                                ),
+                                ApiResponse(
+                                        responseCode = "400",
+                                        description = "❌ Dados inválidos"
+                                ),
+                                ApiResponse(
+                                        responseCode = "500",
+                                        description = "❌ Erro no processamento"
+                                )]
+        )
         fun createCheckout(@RequestBody request: Map<String, Any>): ResponseEntity<*> {
                 return try {
                         val amount =
