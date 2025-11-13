@@ -6,6 +6,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.cloud.FirestoreClient
+import java.io.ByteArrayInputStream
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -17,6 +18,8 @@ class FirebaseConfig {
 
     private val logger = LoggerFactory.getLogger(FirebaseConfig::class.java)
 
+    @Value("\${firebase.service-account-json:}") private lateinit var serviceAccountJson: String
+
     @Value("\${firebase.service-account-key:firebase-admin-sdk.json}")
     private lateinit var serviceAccountKeyPath: String
 
@@ -26,10 +29,28 @@ class FirebaseConfig {
     fun firebaseApp(): FirebaseApp? {
         return try {
             if (FirebaseApp.getApps().isEmpty()) {
-                val serviceAccount = ClassPathResource(serviceAccountKeyPath).inputStream
+                val credentials =
+                        if (serviceAccountJson.isNotBlank()) {
+                            // Usar JSON diretamente da variável de ambiente
+                            logger.info(
+                                    "Carregando credenciais Firebase do JSON da variável de ambiente"
+                            )
+                            GoogleCredentials.fromStream(
+                                    ByteArrayInputStream(serviceAccountJson.toByteArray())
+                            )
+                        } else {
+                            // Fallback: usar arquivo local
+                            logger.info(
+                                    "Carregando credenciais Firebase do arquivo: $serviceAccountKeyPath"
+                            )
+                            val serviceAccount =
+                                    ClassPathResource(serviceAccountKeyPath).inputStream
+                            GoogleCredentials.fromStream(serviceAccount)
+                        }
+
                 val options =
                         FirebaseOptions.builder()
-                                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                                .setCredentials(credentials)
                                 .setProjectId(firebaseProjectId)
                                 .build()
 

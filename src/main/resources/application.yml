@@ -50,20 +50,19 @@ server:
 
 firebase:
   project-id: tyler-dev-c2420
-  service-account-key: firebase-admin-sdk.json
+  service-account-json: ${FIREBASE_CREDENTIALS_JSON:}
 
 # 🗂️ Google Cloud Storage Configuration
 app:
   gcp:
     project-id: ${GCP_PROJECT_ID:tyler-dev-c2420}
     bucket-name: ${GCP_BUCKET_NAME:tyler-products-images-dev}
-    storage-credentials-path: ${GCP_STORAGE_CREDENTIALS_PATH:tyler-storage-credentials.json}
+    storage-credentials-json: ${GCP_STORAGE_CREDENTIALS_JSON:}
     base-url: https://storage.googleapis.com
 
-# �💳 Payment Configuration
+# 💳 Payment Configuration
 pagbank:
   token: ${PAGBANK_TOKEN:}
-  webhook-url: ${PAGBANK_WEBHOOK_URL:https://tyler-api.herokuapp.com/api/payments/webhook}
 
 # 📝 Logging Configuration
 logging:
@@ -121,14 +120,13 @@ app:
   gcp:
     project-id: ${GCP_PROJECT_ID}
     bucket-name: ${GCP_BUCKET_NAME}
-    storage-credentials-path: ${GCP_STORAGE_CREDENTIALS_PATH:/app/config/storage-credentials.json}
+    storage-credentials-json: ${GCP_STORAGE_CREDENTIALS_JSON}
     base-url: https://storage.googleapis.com
 
 # 🔥 Firebase - Produção  
 firebase:
-  credentials-path: ${FIREBASE_CREDENTIALS_PATH:/app/config/firebase-credentials.json}
+  service-account-json: ${FIREBASE_CREDENTIALS_JSON}
 
 # 💳 PagBank - Produção
 pagbank:
   token: ${PAGBANK_TOKEN}
-  webhook-url: ${PAGBANK_WEBHOOK_URL}

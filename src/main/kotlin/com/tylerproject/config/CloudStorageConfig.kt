@@ -3,6 +3,7 @@ package com.tylerproject.config
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.storage.Storage
 import com.google.cloud.storage.StorageOptions
+import java.io.ByteArrayInputStream
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -18,17 +19,33 @@ class CloudStorageConfig {
 
     @Value("\${app.gcp.project-id}") private lateinit var projectId: String
 
+    @Value("\${app.gcp.storage-credentials-json:}")
+    private lateinit var storageCredentialsJson: String
+
     @Value("\${app.gcp.storage-credentials-path:tyler-storage-credentials.json}")
     private lateinit var storageCredentialsPath: String
 
     @Bean
     fun googleStorageCredentials(): GoogleCredentials {
         return try {
-            logger.info("Loading Google Cloud Storage credentials from: $storageCredentialsPath")
-            val resource = ClassPathResource(storageCredentialsPath)
-            GoogleCredentials.fromStream(resource.inputStream)
+            if (storageCredentialsJson.isNotBlank()) {
+                // Usar JSON diretamente da variável de ambiente
+                logger.info(
+                        "Carregando credenciais Google Cloud Storage do JSON da variável de ambiente"
+                )
+                GoogleCredentials.fromStream(
+                        ByteArrayInputStream(storageCredentialsJson.toByteArray())
+                )
+            } else {
+                // Fallback: usar arquivo local
+                logger.info(
+                        "Carregando credenciais Google Cloud Storage do arquivo: $storageCredentialsPath"
+                )
+                val resource = ClassPathResource(storageCredentialsPath)
+                GoogleCredentials.fromStream(resource.inputStream)
+            }
         } catch (e: Exception) {
-            logger.error("Error loading Google Cloud Storage credentials: ${e.message}", e)
+            logger.error("Erro ao carregar credenciais Google Cloud Storage: ${e.message}", e)
             throw e
         }
     }
