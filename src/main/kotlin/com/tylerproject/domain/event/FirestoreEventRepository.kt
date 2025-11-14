@@ -25,7 +25,13 @@ class FirestoreEventRepository :
         id: String,
         event: Event
     ): Event? {
-        TODO("Not yet implemented")
+        val existing = findById(id) ?: return null
+        val updated =
+            updateEntity(
+                event.copy(id = id, createdAt = existing.createdAt),
+                mapOf("updatedAt" to currentTimestamp())
+            )
+        return save(updated)
     }
 
     override fun findAll(
@@ -36,26 +42,22 @@ class FirestoreEventRepository :
         return super.findAll(request, filters)
     }
 
-    override fun findByCategory(
-        category: String,
-        limit: Int
-    ): List<Event> {
-        TODO("Not yet implemented")
-    }
+    override fun findByCategory(category: String, limit: Int): List<Event> =
+        findByField("category", category, limit)
 
-    override fun countByCategory(category: String?): Int {
-        TODO("Not yet implemented")
-    }
 
-    override fun countTotal(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun countByCategory(category: String?): Int =
+        if (category != null) countByField("category", category) else count()
 
-    override fun searchByName(
-        searchTerm: String,
-        limit: Int
-    ): List<Event> {
-        TODO("Not yet implemented")
+    override fun countTotal(): Int = count()
+
+    override fun searchByName(searchTerm: String, limit: Int): List<Event> =
+        searchByField("name", searchTerm, limit)
+
+    private fun currentTimestamp(): String {
+        return java.time.LocalDateTime.now()
+            .atOffset(java.time.ZoneOffset.UTC)
+            .format(java.time.format.DateTimeFormatter.ISO_INSTANT)
     }
 
 }
