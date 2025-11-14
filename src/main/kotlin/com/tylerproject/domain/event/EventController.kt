@@ -1,8 +1,6 @@
 package com.tylerproject.domain.event
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.tylerproject.domain.product.ProductResponse
-import com.tylerproject.domain.product.ProductWithImagesRequest
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -80,7 +78,7 @@ class EventController(private val eventService: EventService) {
         id: String
     ): ResponseEntity<EventResponse> {
         return try {
-            logger.info("Getting product by id: $id")
+            logger.info("Getting event by id: $id")
 
             val event = eventService.getEventById(id)
 
@@ -90,7 +88,7 @@ class EventController(private val eventService: EventService) {
                 ResponseEntity.notFound().build()
             }
         } catch (e: Exception) {
-            logger.error("Error getting product $id: ${e.message}", e)
+            logger.error("Error getting event $id: ${e.message}", e)
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
         }
     }
@@ -175,7 +173,7 @@ class EventController(private val eventService: EventService) {
         request: UpdateEventRequest
     ): ResponseEntity<EventResponse> {
         return try {
-            logger.info("Updating product: $id")
+            logger.info("Updating event: $id")
 
             val event = eventService.updateEvent(id, request)
 
@@ -255,7 +253,7 @@ class EventController(private val eventService: EventService) {
                                 schema =
                                     Schema(
                                         implementation =
-                                            ProductResponse::class
+                                            EventResponse::class
                                     )
                             )]
                 ),
@@ -291,6 +289,52 @@ class EventController(private val eventService: EventService) {
             ResponseEntity.badRequest().build()
         } catch (e: Exception) {
             logger.error("Error creating event with images: ${e.message}", e)
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
+        }
+    }
+
+    fun getEventPaginated(
+        @Parameter(description = "Quantidade de itens por página", example = "20")
+        @RequestParam(defaultValue = "20")
+        limit: Int,
+        @Parameter(
+            description = "Cursor para próxima/anterior página",
+            example = "event_id_123"
+        )
+        @RequestParam(required = false)
+        cursor: String?,
+        @Parameter(description = "Direção da paginação", example = "NEXT")
+        @RequestParam(defaultValue = "NEXT")
+        direction: com.tylerproject.infrastructure.repository.PageDirection,
+        @Parameter(description = "Campo de ordenação", example = "CREATED_AT")
+        @RequestParam(defaultValue = "CREATED_AT")
+        sortBy: EventSortField,
+        @Parameter(description = "Direção da ordenação", example = "DESC")
+        @RequestParam(defaultValue = "DESC")
+        sortDirection: com.tylerproject.infrastructure.repository.SortDirection,
+        @Parameter(description = "Filtrar por categoria", example = "aniversário")
+        @RequestParam(required = false)
+        category: String?
+    ): ResponseEntity<EventPageResponse> {
+        return try {
+            logger.info("Getting events with cursor pagination - limit: $limit, cursor: $cursor")
+
+            val response =
+                eventService.getEventsPaginated(
+                    limit,
+                    cursor,
+                    direction,
+                    sortBy,
+                    sortDirection,
+                    category
+                )
+
+            ResponseEntity.ok(response)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Invalid pagination parameters: ${e.message}", e)
+            ResponseEntity.badRequest().build()
+        } catch (e: Exception) {
+            logger.error("Error getting paginated events: ${e.message}", e)
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
         }
     }

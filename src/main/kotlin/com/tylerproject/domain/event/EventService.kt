@@ -1,9 +1,6 @@
 package com.tylerproject.domain.event
 
-
-import com.tylerproject.domain.product.Product
-import com.tylerproject.domain.product.ProductResponse
-import com.tylerproject.domain.product.ProductWithImagesRequest
+import com.tylerproject.infrastructure.repository.PageDirection
 import com.tylerproject.infrastructure.repository.PageRequest
 import com.tylerproject.infrastructure.repository.SortDirection
 import com.tylerproject.service.ImageUploadService
@@ -162,6 +159,27 @@ class EventService(
         )
 
         return savedEvent.toResponse()
+    }
+
+    fun getEventsPaginated(
+        limit: Int = 20,
+        cursor: String? = null,
+        direction: PageDirection = PageDirection.NEXT,
+        sortBy: EventSortField = EventSortField.CREATED_AT,
+        sortDirection: SortDirection = SortDirection.DESC,
+        category: String? = null
+    ): EventPageResponse {
+        val request = PageRequest(limit, cursor, direction, sortBy.fieldName, sortDirection)
+        val eventPage = eventRepository.findAll(request, category)
+
+        return EventPageResponse(
+            events = eventPage.items.map { it.toResponse() },
+            pageSize = eventPage.pageSize,
+            hasNext = eventPage.hasNext,
+            nextCursor = eventPage.nextCursor,
+            hasPrevious = eventPage.hasPrevious,
+            previousCursor = eventPage.previousCursor
+        )
     }
 
 }
