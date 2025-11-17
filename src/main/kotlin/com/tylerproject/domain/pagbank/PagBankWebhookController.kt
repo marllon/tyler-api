@@ -2,6 +2,7 @@ package com.tylerproject.domain.pagbank
 
 import com.tylerproject.domain.donation.DonationService
 import com.tylerproject.domain.donation.PagBankWebhookPayload
+import com.tylerproject.domain.raffle.RaffleService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import java.time.LocalDateTime
@@ -18,14 +19,17 @@ import org.springframework.web.bind.annotation.*
         name = "🔔 Webhooks",
         description = "Endpoints para receber notificações de pagamento do PagBank"
 )
-class PagBankWebhookController(private val donationService: DonationService) {
+class PagBankWebhookController(
+        private val donationService: DonationService,
+        private val raffleService: RaffleService
+) {
     private val logger = LoggerFactory.getLogger(PagBankWebhookController::class.java)
 
     @PostMapping("/pagbank")
     @Operation(
             summary = "Webhook do PagBank",
             description =
-                    "Endpoint chamado pelo PagBank quando há mudança no status de um pagamento. Processa automaticamente e atualiza a meta/rifa/pedido correspondente."
+                    "Endpoint chamado pelo PagBank quando há mudança no status de um pagamento. Processa automaticamente doações, rifas e outros pagamentos."
     )
     fun handlePagBankWebhook(
             @RequestBody payload: PagBankWebhookPayload
@@ -34,7 +38,20 @@ class PagBankWebhookController(private val donationService: DonationService) {
             logger.info("📨 Received PagBank webhook - notificationId: ${payload.notificationId}")
             logger.debug("Webhook payload: $payload")
 
-            val result = donationService.processWebhook(payload)
+            // Identificar tipo de pagamento pelo reference_id
+            val referenceId = payload.referenceId ?: payload.charges?.firstOrNull()?.referenceId
+
+            val result =
+                    when {
+                        referenceId?.startsWith("raffle_") == true -> {
+                            logger.info("🎰 Processing raffle payment webhook")
+                            raffleService.processWebhook(payload)
+                        }
+                        else -> {
+                            logger.info("❤️ Processing donation webhook")
+                            donationService.processWebhook(payload)
+                        }
+                    }
 
             val response =
                     WebhookResponse(
@@ -48,7 +65,7 @@ class PagBankWebhookController(private val donationService: DonationService) {
 
             if (result.success) {
                 logger.info(
-                        "✅ Webhook processed successfully - donation: ${result.donationId}, status: ${result.previousStatus?.name} -> ${result.newStatus?.name}"
+                        "✅ Webhook processed successfully - entity: ${result.donationId}, status: ${result.previousStatus?.name} -> ${result.newStatus?.name}"
                 )
                 ResponseEntity.ok(response)
             } else {

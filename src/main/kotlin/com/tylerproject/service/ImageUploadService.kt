@@ -164,11 +164,46 @@ class ImageUploadService(
             val objectPath = extractObjectPathFromUrl(imageUrl)
             val blobId = BlobId.of(bucketName, objectPath)
             val deleted = storage.delete(blobId)
-            logger.info("Goal image deletion result for $objectPath: $deleted")
+            logger.info("Goal/Raffle image deletion result for $objectPath: $deleted")
             deleted
         } catch (e: Exception) {
-            logger.error("Error deleting goal image from URL $imageUrl: ${e.message}", e)
+            logger.error("Error deleting image from URL $imageUrl: ${e.message}", e)
             false
+        }
+    }
+
+    /** Upload de imagem específico para Raffles (Rifas) Suporta múltiplas imagens por rifa */
+    fun uploadRaffleImage(raffleId: String, file: MultipartFile, imageIndex: Int): ProductImage {
+        try {
+            val filename =
+                    "image_$imageIndex.${file.originalFilename?.substringAfterLast('.') ?: "jpg"}"
+            val objectPath = "raffles/$raffleId/$filename"
+            logger.info("Uploading raffle image: $filename for raffle: $raffleId")
+
+            val blobId = BlobId.of(bucketName, objectPath)
+            val blobInfo =
+                    BlobInfo.newBuilder(blobId)
+                            .setContentType(file.contentType)
+                            .setCacheControl("public, max-age=31536000")
+                            .build()
+
+            storage.create(blobInfo, file.bytes)
+            val signedUrl = generateSignedUrl(objectPath)
+
+            logger.info("Raffle image uploaded successfully: $objectPath")
+
+            return ProductImage(
+                    id = UUID.randomUUID().toString(),
+                    url = signedUrl,
+                    filename = filename,
+                    contentType = file.contentType ?: "application/octet-stream",
+                    size = file.size,
+                    isPrimary = imageIndex == 0, // Primeira imagem é a principal
+                    uploadedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            )
+        } catch (e: Exception) {
+            logger.error("Error uploading raffle image for raffle $raffleId: ${e.message}", e)
+            throw IOException("Failed to upload raffle image: ${e.message}", e)
         }
     }
 
