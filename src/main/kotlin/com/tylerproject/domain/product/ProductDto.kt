@@ -82,14 +82,6 @@ data class ProductResponse(
         val createdAt: String? = null,
         val updatedAt: String? = null
 )
-@Deprecated("Use ProductPageResponse with cursor-based pagination")
-data class ProductListResponse(
-        val products: List<ProductResponse>,
-        val totalProducts: Long, // ❌ Custoso no NoSQL
-        val currentPage: Int, // ❌ Conceito inválido com cursors
-        val totalPages: Int, // ❌ Custoso no NoSQL
-        val pageSize: Int
-)
 data class ProductPageResponse(
         val products: List<ProductResponse>,
         val pageSize: Int,

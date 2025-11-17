@@ -24,107 +24,7 @@ import org.springframework.web.multipart.MultipartFile
 )
 class ProductController(private val productService: ProductService) {
         private val logger = LoggerFactory.getLogger(ProductController::class.java)
-        @GetMapping
-        @Operation(
-                summary = "📋 Listar produtos (paginação tradicional)",
-                description =
-                        "Lista produtos com paginação tradicional. RECOMENDADO: Use /paginated para melhor performance.",
-                tags = ["Listagem", "Depreciado"]
-        )
-        @ApiResponses(
-                value =
-                        [
-                                ApiResponse(
-                                        responseCode = "200",
-                                        description = "✅ Lista de produtos retornada com sucesso",
-                                        content =
-                                                [
-                                                        Content(
-                                                                mediaType = "application/json",
-                                                                schema =
-                                                                        Schema(
-                                                                                implementation =
-                                                                                        ProductListResponse::class
-                                                                        ),
-                                                                examples =
-                                                                        [
-                                                                                io.swagger.v3.oas
-                                                                                        .annotations
-                                                                                        .media
-                                                                                        .ExampleObject(
-                                                                                                name =
-                                                                                                        "Exemplo de resposta",
-                                                                                                value =
-                                                                                                        """{
-                                        "products": [
-                                            {
-                                                "id": "product_123",
-                                                "name": "Smartphone XYZ",
-                                                "price": 899.99,
-                                                "category": "Eletronicos",
-                                                "stock": 50,
-                                                "active": true
-                                            }
-                                        ],
-                                        "currentPage": 1,
-                                        "totalPages": 10,
-                                        "pageSize": 10
-                                    }"""
-                                                                                        )]
-                                                        )]
-                                ),
-                                ApiResponse(
-                                        responseCode = "400",
-                                        description = "❌ Parâmetros inválidos"
-                                ),
-                                ApiResponse(
-                                        responseCode = "500",
-                                        description = "❌ Erro interno do servidor"
-                                )]
-        )
-        fun getAllProducts(
-                @Parameter(description = "Número da página (inicia em 1)", example = "1")
-                @RequestParam(defaultValue = "1")
-                page: Int,
-                @Parameter(description = "Quantidade de itens por página", example = "10")
-                @RequestParam(defaultValue = "10")
-                pageSize: Int,
-                @Parameter(description = "Filtrar apenas produtos ativos", example = "true")
-                @RequestParam(defaultValue = "true")
-                activeOnly: Boolean,
-                @Parameter(
-                        description = "Filtrar por categoria específica",
-                        example = "Eletronicos"
-                )
-                @RequestParam(required = false)
-                category: String?
-        ): ResponseEntity<ProductListResponse> {
-                return try {
-                        logger.info(
-                                "Listing products - page: $page, pageSize: $pageSize, activeOnly: $activeOnly, category: $category"
-                        )
-                        val pageResponse =
-                                productService.getProductsPaginated(
-                                        limit = pageSize,
-                                        cursor = null,
-                                        activeOnly = activeOnly,
-                                        category = category
-                                )
-                        @Suppress("DEPRECATION")
-                        val response =
-                                ProductListResponse(
-                                        products = pageResponse.products,
-                                        totalPages = -1,
-                                        currentPage = page,
-                                        totalProducts = -1L,
-                                        pageSize = pageResponse.pageSize
-                                )
-                        ResponseEntity.ok(response)
-                } catch (e: Exception) {
-                        logger.error("Error listing products: ${e.message}", e)
-                        ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
-                }
-        }
+
         @GetMapping("/{id}")
         @Operation(
                 summary = "Buscar produto por ID",
@@ -156,12 +56,13 @@ class ProductController(private val productService: ProductService) {
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
                 }
         }
-        @GetMapping("/paginated")
+
+        @GetMapping
         @Operation(
-                summary = "🚀 Listar produtos (cursor pagination) - RECOMENDADO",
+                summary = "🚀 Listar produtos com cursor pagination",
                 description =
                         "Versão otimizada para NoSQL com cursor-based pagination. Performance O(1) vs O(n) da paginação tradicional.",
-                tags = ["Listagem", "Recomendado"]
+                tags = ["Listagem"]
         )
         @ApiResponses(
                 value =
@@ -240,10 +141,10 @@ class ProductController(private val productService: ProductService) {
         }
         @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
         @Operation(
-                summary = "➕ Criar produto (com imagens opcionais) - UNIFICADO",
+                summary = "➕ Criar produto com imagens",
                 description =
-                        "Endpoint principal para criar produtos. Suporta até 10 imagens simultaneamente. Reduz número de requests HTTP.",
-                tags = ["CRUD", "Upload", "Recomendado"],
+                        "Endpoint para criar produtos. Suporta até 10 imagens simultaneamente.",
+                tags = ["CRUD", "Upload"],
                 security = [SecurityRequirement(name = "Bearer")]
         )
         @ApiResponses(
