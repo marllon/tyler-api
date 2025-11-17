@@ -1,15 +1,19 @@
-package com.tylerproject.controllers
+package com.tylerproject.domain.health
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
-import java.time.LocalDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDateTime
+
 @RestController
 @RequestMapping("/api")
 @Tag(name = "🏥 Health", description = "Endpoints de monitoramento e status da API")
@@ -25,26 +29,26 @@ class HealthController : HealthIndicator {
     @ApiResponses(
             value =
                     [
-                            ApiResponse(
-                                    responseCode = "200",
-                                    description = "✅ API funcionando normalmente",
-                                    content =
-                                            [
-                                                    Content(
-                                                            mediaType = "application/json",
-                                                            schema =
-                                                                    Schema(
-                                                                            example =
-                                                                                    """{
+                        ApiResponse(
+                            responseCode = "200",
+                            description = "✅ API funcionando normalmente",
+                            content =
+                                [
+                                    Content(
+                                        mediaType = "application/json",
+                                        schema =
+                                            Schema(
+                                                example =
+                                                    """{
                         "status": "healthy",
                         "message": "Tyler API Spring Boot está funcionando perfeitamente! ✅",
                         "timestamp": "2024-01-15T10:30:00",
                         "version": "2.1.0",
                         "environment": "development"
                     }"""
-                                                                    )
-                                                    )]
-                            )]
+                                            )
+                                    )]
+                        )]
     )
     fun healthCheck(): Map<String, Any> {
         logger.info("🏥 Health check solicitado")

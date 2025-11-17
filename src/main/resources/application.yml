@@ -23,6 +23,12 @@ spring:
       max-request-size: 50MB
       file-size-threshold: 2KB
 
+goal:
+  image:
+    max-size: 5242880
+    allowed-types: image/jpeg,image/png,image/webp
+    storage-path: goals
+
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework

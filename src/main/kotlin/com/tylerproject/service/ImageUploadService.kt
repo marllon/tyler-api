@@ -102,6 +102,78 @@ class ImageUploadService(
             false
         }
     }
+
+    fun deleteImagesByPrefix(prefix: String): Boolean {
+        return try {
+            val blobs = storage.list(bucketName, Storage.BlobListOption.prefix(prefix))
+            var allDeleted = true
+            blobs.iterateAll().forEach { blob ->
+                val deleted = storage.delete(blob.blobId)
+                if (!deleted) {
+                    allDeleted = false
+                    logger.warn("Failed to delete blob: ${blob.name}")
+                }
+            }
+            logger.info("Images with prefix '$prefix' deletion result: $allDeleted")
+            allDeleted
+        } catch (e: Exception) {
+            logger.error("Error deleting images with prefix '$prefix': ${e.message}", e)
+            false
+        }
+    }
+
+    /**
+     * Upload de imagem específico para Goals (Metas)
+     * Usa pasta "goals/" ao invés de "products/"
+     */
+    fun uploadGoalImage(goalId: String, file: MultipartFile): ProductImage {
+        try {
+            val filename = generateUniqueFilename(goalId, file.originalFilename ?: "image")
+            val objectPath = "goals/$goalId/$filename"
+            logger.info("Uploading goal image: $filename for goal: $goalId")
+
+            val blobId = BlobId.of(bucketName, objectPath)
+            val blobInfo = BlobInfo.newBuilder(blobId)
+                .setContentType(file.contentType)
+                .setCacheControl("public, max-age=31536000")
+                .build()
+
+            storage.create(blobInfo, file.bytes)
+            val signedUrl = generateSignedUrl(objectPath)
+
+            logger.info("Goal image uploaded successfully: $objectPath")
+
+            return ProductImage(
+                id = UUID.randomUUID().toString(),
+                url = signedUrl,
+                filename = filename,
+                contentType = file.contentType ?: "application/octet-stream",
+                size = file.size,
+                isPrimary = true,
+                uploadedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            )
+        } catch (e: Exception) {
+            logger.error("Error uploading goal image for goal $goalId: ${e.message}", e)
+            throw IOException("Failed to upload goal image: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Deleta imagem de Goal extraindo o filename da URL
+     */
+    fun deleteGoalImageByUrl(imageUrl: String): Boolean {
+        return try {
+            val objectPath = extractObjectPathFromUrl(imageUrl)
+            val blobId = BlobId.of(bucketName, objectPath)
+            val deleted = storage.delete(blobId)
+            logger.info("Goal image deletion result for $objectPath: $deleted")
+            deleted
+        } catch (e: Exception) {
+            logger.error("Error deleting goal image from URL $imageUrl: ${e.message}", e)
+            false
+        }
+    }
+
     fun toImageUploadResponse(image: ProductImage): ImageUploadResponse {
         return ImageUploadResponse(
                 id = image.id,
