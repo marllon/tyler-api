@@ -20,54 +20,67 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/api/goals")
 @CrossOrigin(origins = ["*"])
 @Tag(
-    name = "🎯 Goals",
-    description = "API de Gerenciamento de Metas de Arrecadação com upload de imagens, paginação e filtros"
+        name = "🎯 Goals",
+        description =
+                "API de Gerenciamento de Metas de Arrecadação com upload de imagens, paginação e filtros"
 )
-class GoalController(
-    private val goalService: GoalService
-) {
+class GoalController(private val goalService: GoalService) {
     private val logger = LoggerFactory.getLogger(GoalController::class.java)
 
     @GetMapping
     @Operation(
-        summary = "Listar todas as metas",
-        description = "Lista todas as metas com paginação e filtros opcionais por status e visibilidade"
+            summary = "Listar todas as metas",
+            description =
+                    "Lista todas as metas com paginação e filtros opcionais por status e visibilidade"
     )
     @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "Lista de metas com paginação",
-                content = [Content(
-                    mediaType = "application/json",
-                    schema = Schema(implementation = GoalPageResponse::class)
-                )]
-            ),
-            ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-        ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "200",
+                                    description = "Lista de metas com paginação",
+                                    content =
+                                            [
+                                                    Content(
+                                                            mediaType = "application/json",
+                                                            schema =
+                                                                    Schema(
+                                                                            implementation =
+                                                                                    GoalPageResponse::class
+                                                                    )
+                                                    )]
+                            ),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Erro interno do servidor"
+                            )]
     )
     fun listGoals(
-        @Parameter(description = "Número da página (começa em 0)", example = "0")
-        @RequestParam(defaultValue = "0") page: Int,
-
-        @Parameter(description = "Tamanho da página", example = "20")
-        @RequestParam(defaultValue = "20") pageSize: Int,
-
-        @Parameter(description = "Filtrar por status (ACTIVE, PAUSED, COMPLETED, CANCELLED)")
-        @RequestParam(required = false) status: GoalStatus?,
-
-        @Parameter(description = "Exibir apenas metas ativas", example = "false")
-        @RequestParam(defaultValue = "false") activeOnly: Boolean,
-
-        @Parameter(description = "Campo de ordenação", example = "createdAt")
-        @RequestParam(defaultValue = "createdAt") sortBy: String,
-
-        @Parameter(description = "Direção da ordenação (ASC ou DESC)", example = "DESC")
-        @RequestParam(defaultValue = "DESC") sortDirection: String
+            @Parameter(description = "Número da página (começa em 0)", example = "0")
+            @RequestParam(defaultValue = "0")
+            page: Int,
+            @Parameter(description = "Tamanho da página", example = "20")
+            @RequestParam(defaultValue = "20")
+            pageSize: Int,
+            @Parameter(description = "Filtrar por status (ACTIVE, PAUSED, COMPLETED, CANCELLED)")
+            @RequestParam(required = false)
+            status: GoalStatus?,
+            @Parameter(description = "Exibir apenas metas ativas", example = "false")
+            @RequestParam(defaultValue = "false")
+            activeOnly: Boolean,
+            @Parameter(description = "Campo de ordenação", example = "createdAt")
+            @RequestParam(defaultValue = "createdAt")
+            sortBy: String,
+            @Parameter(description = "Direção da ordenação (ASC ou DESC)", example = "DESC")
+            @RequestParam(defaultValue = "DESC")
+            sortDirection: String
     ): ResponseEntity<GoalPageResponse> {
         return try {
-            logger.info("Listing goals - page: $page, pageSize: $pageSize, status: $status, activeOnly: $activeOnly")
-            val response = goalService.listGoals(page, pageSize, status, activeOnly, sortBy, sortDirection)
+            logger.info(
+                    "Listing goals - page: $page, pageSize: $pageSize, status: $status, activeOnly: $activeOnly"
+            )
+            val response =
+                    goalService.listGoals(page, pageSize, status, activeOnly, sortBy, sortDirection)
             ResponseEntity.ok(response)
         } catch (e: Exception) {
             logger.error("Error listing goals: ${e.message}", e)
@@ -77,19 +90,21 @@ class GoalController(
 
     @GetMapping("/{id}")
     @Operation(
-        summary = "Buscar meta por ID",
-        description = "Retorna uma meta específica pelo seu identificador único"
+            summary = "Buscar meta por ID",
+            description = "Retorna uma meta específica pelo seu identificador único"
     )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Meta encontrada"),
-            ApiResponse(responseCode = "404", description = "Meta não encontrada"),
-            ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-        ]
+            value =
+                    [
+                            ApiResponse(responseCode = "200", description = "Meta encontrada"),
+                            ApiResponse(responseCode = "404", description = "Meta não encontrada"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Erro interno do servidor"
+                            )]
     )
     fun getGoalById(
-        @Parameter(description = "ID único da meta")
-        @PathVariable id: String
+            @Parameter(description = "ID único da meta") @PathVariable id: String
     ): ResponseEntity<GoalResponse> {
         return try {
             logger.info("Getting goal by id: $id")
@@ -107,22 +122,32 @@ class GoalController(
 
     @PostMapping
     @Operation(
-        summary = "Criar nova meta",
-        description = "Cria uma nova meta de arrecadação. Requer autenticação de administrador.",
-        security = [SecurityRequirement(name = "firebase-auth")]
+            summary = "Criar nova meta",
+            description =
+                    "Cria uma nova meta de arrecadação. Requer autenticação de administrador.",
+            security = [SecurityRequirement(name = "firebase-auth")]
     )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "201", description = "Meta criada com sucesso"),
-            ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            ApiResponse(responseCode = "401", description = "Não autenticado"),
-            ApiResponse(responseCode = "403", description = "Sem permissão de administrador"),
-            ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-        ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "201",
+                                    description = "Meta criada com sucesso"
+                            ),
+                            ApiResponse(responseCode = "400", description = "Dados inválidos"),
+                            ApiResponse(responseCode = "401", description = "Não autenticado"),
+                            ApiResponse(
+                                    responseCode = "403",
+                                    description = "Sem permissão de administrador"
+                            ),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Erro interno do servidor"
+                            )]
     )
     fun createGoal(
-        @Valid @RequestBody request: CreateGoalRequest,
-        @RequestHeader(value = "Authorization", required = false) authToken: String?
+            @Valid @RequestBody request: CreateGoalRequest,
+            @RequestHeader(value = "Authorization", required = false) authToken: String?
     ): ResponseEntity<GoalResponse> {
         return try {
             logger.info("Creating goal: ${request.title}")
@@ -140,24 +165,30 @@ class GoalController(
 
     @PutMapping("/{id}")
     @Operation(
-        summary = "Atualizar meta existente",
-        description = "Atualiza uma meta existente. Apenas campos não nulos são atualizados. Requer autenticação.",
-        security = [SecurityRequirement(name = "firebase-auth")]
+            summary = "Atualizar meta existente",
+            description =
+                    "Atualiza uma meta existente. Apenas campos não nulos são atualizados. Requer autenticação.",
+            security = [SecurityRequirement(name = "firebase-auth")]
     )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Meta atualizada com sucesso"),
-            ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            ApiResponse(responseCode = "401", description = "Não autenticado"),
-            ApiResponse(responseCode = "404", description = "Meta não encontrada"),
-            ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-        ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "200",
+                                    description = "Meta atualizada com sucesso"
+                            ),
+                            ApiResponse(responseCode = "400", description = "Dados inválidos"),
+                            ApiResponse(responseCode = "401", description = "Não autenticado"),
+                            ApiResponse(responseCode = "404", description = "Meta não encontrada"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Erro interno do servidor"
+                            )]
     )
     fun updateGoal(
-        @Parameter(description = "ID único da meta")
-        @PathVariable id: String,
-        @Valid @RequestBody request: UpdateGoalRequest,
-        @RequestHeader(value = "Authorization", required = false) authToken: String?
+            @Parameter(description = "ID único da meta") @PathVariable id: String,
+            @Valid @RequestBody request: UpdateGoalRequest,
+            @RequestHeader(value = "Authorization", required = false) authToken: String?
     ): ResponseEntity<GoalResponse> {
         return try {
             logger.info("Updating goal: $id")
@@ -178,23 +209,32 @@ class GoalController(
 
     @PatchMapping("/{id}/add-amount")
     @Operation(
-        summary = "Adicionar valor à meta",
-        description = "Incrementa o valor arrecadado da meta. Usado ao processar doações. Atualiza status para COMPLETED se atingir o valor alvo."
+            summary = "Adicionar valor à meta",
+            description =
+                    "Incrementa o valor arrecadado da meta. Usado ao processar doações. Atualiza status para COMPLETED se atingir o valor alvo."
     )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Valor adicionado com sucesso"),
-            ApiResponse(responseCode = "400", description = "Valor inválido"),
-            ApiResponse(responseCode = "404", description = "Meta não encontrada"),
-            ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-        ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "200",
+                                    description = "Valor adicionado com sucesso"
+                            ),
+                            ApiResponse(responseCode = "400", description = "Valor inválido"),
+                            ApiResponse(responseCode = "404", description = "Meta não encontrada"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Erro interno do servidor"
+                            )]
     )
     fun addAmountToGoal(
-        @Parameter(description = "ID único da meta")
-        @PathVariable id: String,
-        
-        @Parameter(description = "Valor a adicionar (deve ser maior que zero)", example = "150.00")
-        @RequestParam amount: Double
+            @Parameter(description = "ID único da meta") @PathVariable id: String,
+            @Parameter(
+                    description = "Valor a adicionar (deve ser maior que zero)",
+                    example = "150.00"
+            )
+            @RequestParam
+            amount: Double
     ): ResponseEntity<GoalResponse> {
         return try {
             logger.info("Adding amount $amount to goal $id")
@@ -215,22 +255,28 @@ class GoalController(
 
     @DeleteMapping("/{id}")
     @Operation(
-        summary = "Excluir meta (soft delete)",
-        description = "Remove uma meta (soft delete - marca como inativa). Requer autenticação.",
-        security = [SecurityRequirement(name = "firebase-auth")]
+            summary = "Excluir meta (soft delete)",
+            description =
+                    "Remove uma meta (soft delete - marca como inativa). Requer autenticação.",
+            security = [SecurityRequirement(name = "firebase-auth")]
     )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "204", description = "Meta excluída com sucesso"),
-            ApiResponse(responseCode = "401", description = "Não autenticado"),
-            ApiResponse(responseCode = "404", description = "Meta não encontrada"),
-            ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-        ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "204",
+                                    description = "Meta excluída com sucesso"
+                            ),
+                            ApiResponse(responseCode = "401", description = "Não autenticado"),
+                            ApiResponse(responseCode = "404", description = "Meta não encontrada"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Erro interno do servidor"
+                            )]
     )
     fun deleteGoal(
-        @Parameter(description = "ID único da meta")
-        @PathVariable id: String,
-        @RequestHeader(value = "Authorization", required = false) authToken: String?
+            @Parameter(description = "ID único da meta") @PathVariable id: String,
+            @RequestHeader(value = "Authorization", required = false) authToken: String?
     ): ResponseEntity<Void> {
         return try {
             logger.info("Deleting goal: $id")
@@ -248,35 +294,40 @@ class GoalController(
 
     @PostMapping("/{id}/upload-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     @Operation(
-        summary = "Upload de imagem da meta",
-        description = "Faz upload de uma imagem para a meta no Firebase Storage. Requer autenticação.",
-        security = [SecurityRequirement(name = "firebase-auth")]
+            summary = "Upload de imagem da meta",
+            description =
+                    "Faz upload de uma imagem para a meta no Firebase Storage. Requer autenticação.",
+            security = [SecurityRequirement(name = "firebase-auth")]
     )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Imagem enviada com sucesso"),
-            ApiResponse(responseCode = "400", description = "Arquivo inválido"),
-            ApiResponse(responseCode = "401", description = "Não autenticado"),
-            ApiResponse(responseCode = "404", description = "Meta não encontrada"),
-            ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-        ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "200",
+                                    description = "Imagem enviada com sucesso"
+                            ),
+                            ApiResponse(responseCode = "400", description = "Arquivo inválido"),
+                            ApiResponse(responseCode = "401", description = "Não autenticado"),
+                            ApiResponse(responseCode = "404", description = "Meta não encontrada"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Erro interno do servidor"
+                            )]
     )
     fun uploadGoalImage(
-        @Parameter(description = "ID único da meta")
-        @PathVariable id: String,
-        
-        @Parameter(description = "Arquivo de imagem (JPG, PNG, WebP - máx 5MB)")
-        @RequestParam("file") file: MultipartFile,
-        
-        @RequestHeader(value = "Authorization", required = false) authToken: String?
+            @Parameter(description = "ID único da meta") @PathVariable id: String,
+            @Parameter(description = "Arquivo de imagem (JPG, PNG, WebP - máx 5MB)")
+            @RequestParam("file")
+            file: MultipartFile,
+            @RequestHeader(value = "Authorization", required = false) authToken: String?
     ): ResponseEntity<ImageUploadResponse> {
         return try {
             logger.info("Uploading image for goal: $id")
-            
+
             if (file.isEmpty) {
                 return ResponseEntity.badRequest().build()
             }
-            
+
             val imageUrl = goalService.uploadImage(id, file)
             if (imageUrl != null) {
                 ResponseEntity.ok(ImageUploadResponse(imageUrl))
@@ -294,22 +345,30 @@ class GoalController(
 
     @DeleteMapping("/{id}/image")
     @Operation(
-        summary = "Remover imagem da meta",
-        description = "Remove a imagem da meta do Firebase Storage. Requer autenticação.",
-        security = [SecurityRequirement(name = "firebase-auth")]
+            summary = "Remover imagem da meta",
+            description = "Remove a imagem da meta do Firebase Storage. Requer autenticação.",
+            security = [SecurityRequirement(name = "firebase-auth")]
     )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "204", description = "Imagem removida com sucesso"),
-            ApiResponse(responseCode = "401", description = "Não autenticado"),
-            ApiResponse(responseCode = "404", description = "Meta não encontrada ou sem imagem"),
-            ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-        ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "204",
+                                    description = "Imagem removida com sucesso"
+                            ),
+                            ApiResponse(responseCode = "401", description = "Não autenticado"),
+                            ApiResponse(
+                                    responseCode = "404",
+                                    description = "Meta não encontrada ou sem imagem"
+                            ),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Erro interno do servidor"
+                            )]
     )
     fun deleteGoalImage(
-        @Parameter(description = "ID único da meta")
-        @PathVariable id: String,
-        @RequestHeader(value = "Authorization", required = false) authToken: String?
+            @Parameter(description = "ID único da meta") @PathVariable id: String,
+            @RequestHeader(value = "Authorization", required = false) authToken: String?
     ): ResponseEntity<Void> {
         return try {
             logger.info("Deleting image for goal: $id")

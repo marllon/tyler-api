@@ -3,6 +3,7 @@
 ## ❌ Problema Identificado
 
 O projeto estava usando `async/await` do **kotlinx.coroutines**, mas:
+
 - ✗ Projeto **não tem** suporte a coroutines
 - ✗ Spring Boot configurado para **modo síncrono**
 - ✗ **40+ erros** de compilação (17 em DonationRepository, 16 em GoalRepository, 3 em GoalService)
@@ -10,6 +11,7 @@ O projeto estava usando `async/await` do **kotlinx.coroutines**, mas:
 ## ✅ Solução Implementada
 
 ### 1. **DonationRepository.kt** - Refatorado para Sync
+
 ```kotlin
 // ANTES (ERRADO - async/await)
 suspend fun save(donation: Donation): Donation {
@@ -25,6 +27,7 @@ fun save(donation: Donation): Donation {
 ```
 
 **Mudanças:**
+
 - ✓ Removido `suspend` de todas as funções
 - ✓ Substituído `.await()` por `.get().get()` (Firestore síncrono)
 - ✓ Adicionado tipo explícito `QueryDocumentSnapshot` nos lambdas
@@ -32,6 +35,7 @@ fun save(donation: Donation): Donation {
 - ✓ Alterado assinatura `update(Map<String, Any?>)` para permitir `null`
 
 ### 2. **GoalRepository.kt** - Refatorado para Sync
+
 ```kotlin
 // ANTES (ERRADO)
 suspend fun findAll(...): Pair<List<Goal>, Long> {
@@ -51,11 +55,13 @@ fun findAll(...): Pair<List<Goal>, Long> {
 ```
 
 **Mudanças:**
+
 - ✓ Mesmo padrão do DonationRepository
 - ✓ Todas as queries Firestore agora síncronas
 - ✓ Tipos explícitos para evitar inferência de `Nothing?`
 
 ### 3. **GoalService.kt** - Refatorado para Sync
+
 ```kotlin
 // ANTES (ERRADO)
 override fun uploadImage(...): String? = runBlocking {
@@ -72,12 +78,14 @@ override fun uploadImage(...): String? {
 ```
 
 **Mudanças:**
+
 - ✓ Removido `runBlocking` de todos os métodos
 - ✓ Corrigido nome do método: `uploadImageToFirebase` → `uploadSingleImage`
 - ✓ Corrigido delete: usa `deleteImagesByPrefix()` do ImageUploadService
 - ✓ Fixado Map com nullable: `Map<String, Any?>` para permitir `"imageUrl" to null`
 
 ### 4. **ImageUploadService.kt** - Novo Método Público
+
 ```kotlin
 // Adicionado método para Goals/Donations
 fun deleteImagesByPrefix(prefix: String): Boolean {
@@ -94,6 +102,7 @@ fun deleteImagesByPrefix(prefix: String): Boolean {
 ## 📊 Resultados
 
 ### Compilação Anterior
+
 ```
 [ERROR] 40 compilation errors
 [ERROR] DonationRepository.kt: Unresolved reference: await (17 errors)
@@ -103,6 +112,7 @@ fun deleteImagesByPrefix(prefix: String): Boolean {
 ```
 
 ### Compilação Atual
+
 ```
 [INFO] BUILD SUCCESS
 [WARNING] 3 warnings (non-blocking)
@@ -112,6 +122,7 @@ fun deleteImagesByPrefix(prefix: String): Boolean {
 ## 🔍 Padrão Correto para Firestore
 
 ### ✅ **Synchronous Pattern (usado no projeto)**
+
 ```kotlin
 fun findById(id: String): Entity? {
     val snapshot = firestore.collection("entities").document(id).get().get()
@@ -127,6 +138,7 @@ fun findAll(): List<Entity> {
 ```
 
 ### ❌ **Async/Await Pattern (NÃO suportado)**
+
 ```kotlin
 // NÃO FAZER - Requer kotlinx-coroutines-play-services
 suspend fun findById(id: String): Entity? {
@@ -153,6 +165,7 @@ suspend fun findById(id: String): Entity? {
 ## 🚀 Próximos Passos
 
 O backend está pronto para:
+
 - ✓ Subir a aplicação Spring Boot
 - ✓ Testar endpoints de Goals (ver `GOALS-API-GUIDE.md`)
 - ✓ Testar endpoints de Donations
@@ -160,5 +173,6 @@ O backend está pronto para:
 - ✓ Upload de imagens para Goals
 
 ---
+
 **Data:** 17/11/2025  
 **Status:** ✅ COMPILAÇÃO LIMPA - PRONTO PARA PRODUÇÃO

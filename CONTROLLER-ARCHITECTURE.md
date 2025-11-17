@@ -3,18 +3,22 @@
 ## ✅ Arquitetura Final
 
 ### 1️⃣ **PaymentController** (`/api/payments`)
+
 **Propósito**: Interação direta com PagBank (checkout genérico)
 
 **Endpoints**:
+
 - `POST /api/payments/checkout` - Criar checkout PIX genérico
 - `GET /api/payments/{id}/status` - Consultar status de pagamento
 
 **Responsabilidades**:
+
 - Criar checkouts PIX sem vínculo com doações
 - Consultar status de transações no PagBank
 - Interface de baixo nível com PagBankProvider
 
-**Uso**: 
+**Uso**:
+
 - Pagamentos avulsos/testes
 - Integração direta com PagBank
 - **NÃO** gerencia doações/metas/rifas
@@ -22,13 +26,16 @@
 ---
 
 ### 2️⃣ **PagBankWebhookController** (`/api/webhooks`)
+
 **Propósito**: Receber notificações do PagBank e rotear para destinos
 
 **Endpoints**:
+
 - `POST /api/webhooks/pagbank` - Webhook do PagBank (chamado automaticamente)
 - `GET /api/webhooks/pagbank/health` - Health check
 
 **Responsabilidades**:
+
 - Receber notificações de mudança de status (PAID, CANCELLED, etc)
 - Processar webhook via DonationService
 - Rotear pagamento para destino correto (Goal/Raffle/Order)
@@ -36,6 +43,7 @@
 - Adicionar valor à meta automaticamente
 
 **Uso**:
+
 - Configurado no painel PagBank
 - URL: `https://seu-dominio.com/api/webhooks/pagbank`
 - Processamento automático de pagamentos
@@ -43,9 +51,11 @@
 ---
 
 ### 3️⃣ **DonationController** (`/api/donations`)
+
 **Propósito**: Gerenciar doações vinculadas a metas/rifas/pedidos
 
 **Endpoints**:
+
 - `POST /api/donations` - Criar doação vinculada
 - `POST /api/donations/{id}/create-pix-charge` - Gerar QR Code PIX
 - `GET /api/donations` - Listar doações (admin)
@@ -54,6 +64,7 @@
 - `POST /api/donations/{id}/process` - Reprocessar manualmente (admin)
 
 **Responsabilidades**:
+
 - CRUD completo de doações
 - Vincular pagamentos a Goals/Raffles/Orders
 - Gerar QR Codes PIX via PagBank
@@ -61,6 +72,7 @@
 - Relatórios e auditoria
 
 **Uso**:
+
 - Frontend cria doação vinculada a meta
 - Frontend solicita QR Code PIX
 - Admin consulta histórico de doações
@@ -99,6 +111,7 @@
 ## 🚫 O que foi REMOVIDO
 
 ### ❌ Webhook do PaymentController
+
 - **Removido**: `POST /api/payments/webhook`
 - **Motivo**: Duplicado e sem lógica de roteamento
 - **Substituído por**: `POST /api/webhooks/pagbank` (PagBankWebhookController)
@@ -107,14 +120,14 @@
 
 ## 🎯 Quando usar cada Controller?
 
-| Cenário | Controller | Endpoint |
-|---------|-----------|----------|
-| Criar doação para meta | DonationController | `POST /api/donations` |
-| Gerar QR Code PIX | DonationController | `POST /api/donations/{id}/create-pix-charge` |
-| Listar doações (admin) | DonationController | `GET /api/donations` |
-| Receber notificação PagBank | PagBankWebhookController | `POST /api/webhooks/pagbank` (automático) |
-| Checkout genérico (sem doação) | PaymentController | `POST /api/payments/checkout` |
-| Consultar status PagBank | PaymentController | `GET /api/payments/{id}/status` |
+| Cenário                        | Controller               | Endpoint                                     |
+| ------------------------------ | ------------------------ | -------------------------------------------- |
+| Criar doação para meta         | DonationController       | `POST /api/donations`                        |
+| Gerar QR Code PIX              | DonationController       | `POST /api/donations/{id}/create-pix-charge` |
+| Listar doações (admin)         | DonationController       | `GET /api/donations`                         |
+| Receber notificação PagBank    | PagBankWebhookController | `POST /api/webhooks/pagbank` (automático)    |
+| Checkout genérico (sem doação) | PaymentController        | `POST /api/payments/checkout`                |
+| Consultar status PagBank       | PaymentController        | `GET /api/payments/{id}/status`              |
 
 ---
 
@@ -131,6 +144,7 @@
 ## 📝 DTOs Criados
 
 ### PagBankDto.kt
+
 - `CreateCheckoutRequest` - Criar checkout genérico
 - `CheckoutResponse` - Resposta com QR Code
 - `PaymentStatusResponse` - Status de pagamento
@@ -138,6 +152,7 @@
 - `HealthCheckResponse` - Health check
 
 ### DonationDto.kt
+
 - `ProcessDonationResponse` - Resultado de processamento manual
 
 ---

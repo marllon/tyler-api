@@ -1,4 +1,5 @@
 package com.tylerproject.service
+
 import com.google.cloud.storage.BlobId
 import com.google.cloud.storage.BlobInfo
 import com.google.cloud.storage.Storage
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
+
 @Service
 class ImageUploadService(
         private val storage: Storage,
@@ -122,10 +124,7 @@ class ImageUploadService(
         }
     }
 
-    /**
-     * Upload de imagem específico para Goals (Metas)
-     * Usa pasta "goals/" ao invés de "products/"
-     */
+    /** Upload de imagem específico para Goals (Metas) Usa pasta "goals/" ao invés de "products/" */
     fun uploadGoalImage(goalId: String, file: MultipartFile): ProductImage {
         try {
             val filename = generateUniqueFilename(goalId, file.originalFilename ?: "image")
@@ -133,10 +132,11 @@ class ImageUploadService(
             logger.info("Uploading goal image: $filename for goal: $goalId")
 
             val blobId = BlobId.of(bucketName, objectPath)
-            val blobInfo = BlobInfo.newBuilder(blobId)
-                .setContentType(file.contentType)
-                .setCacheControl("public, max-age=31536000")
-                .build()
+            val blobInfo =
+                    BlobInfo.newBuilder(blobId)
+                            .setContentType(file.contentType)
+                            .setCacheControl("public, max-age=31536000")
+                            .build()
 
             storage.create(blobInfo, file.bytes)
             val signedUrl = generateSignedUrl(objectPath)
@@ -144,13 +144,13 @@ class ImageUploadService(
             logger.info("Goal image uploaded successfully: $objectPath")
 
             return ProductImage(
-                id = UUID.randomUUID().toString(),
-                url = signedUrl,
-                filename = filename,
-                contentType = file.contentType ?: "application/octet-stream",
-                size = file.size,
-                isPrimary = true,
-                uploadedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                    id = UUID.randomUUID().toString(),
+                    url = signedUrl,
+                    filename = filename,
+                    contentType = file.contentType ?: "application/octet-stream",
+                    size = file.size,
+                    isPrimary = true,
+                    uploadedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
             )
         } catch (e: Exception) {
             logger.error("Error uploading goal image for goal $goalId: ${e.message}", e)
@@ -158,9 +158,7 @@ class ImageUploadService(
         }
     }
 
-    /**
-     * Deleta imagem de Goal extraindo o filename da URL
-     */
+    /** Deleta imagem de Goal extraindo o filename da URL */
     fun deleteGoalImageByUrl(imageUrl: String): Boolean {
         return try {
             val objectPath = extractObjectPathFromUrl(imageUrl)

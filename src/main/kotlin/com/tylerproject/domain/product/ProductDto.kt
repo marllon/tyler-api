@@ -1,6 +1,8 @@
 package com.tylerproject.domain.product
+
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+
 data class CreateProductRequest
 @JsonCreator
 constructor(
@@ -18,6 +20,7 @@ constructor(
         @JsonProperty("warranty") val warranty: Int? = null,
         @JsonProperty("tags") val tags: List<String>? = null
 )
+
 data class ImageUploadResponse(
         val id: String,
         val url: String,
@@ -26,6 +29,7 @@ data class ImageUploadResponse(
         val size: Long,
         val isPrimary: Boolean
 )
+
 data class ProductWithImagesRequest
 @JsonCreator
 constructor(
@@ -45,6 +49,7 @@ constructor(
         @JsonProperty("primaryImageIndex")
         val primaryImageIndex: Int = 0 // Índice da imagem principal nas imagens enviadas
 )
+
 data class UpdateProductRequest
 @JsonCreator
 constructor(
@@ -62,6 +67,7 @@ constructor(
         @JsonProperty("warranty") val warranty: Int? = null,
         @JsonProperty("tags") val tags: List<String>? = null
 )
+
 data class ProductResponse(
         val id: String,
         val name: String,
@@ -82,6 +88,7 @@ data class ProductResponse(
         val createdAt: String? = null,
         val updatedAt: String? = null
 )
+
 data class ProductPageResponse(
         val products: List<ProductResponse>,
         val pageSize: Int,
@@ -92,6 +99,7 @@ data class ProductPageResponse(
         val isEmpty: Boolean = products.isEmpty(),
         val count: Int = products.size
 )
+
 data class ProductDeletedResponse(
         val message: String,
         val deletedProductId: String,

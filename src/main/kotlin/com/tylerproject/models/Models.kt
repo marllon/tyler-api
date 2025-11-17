@@ -1,19 +1,24 @@
 package com.tylerproject.models
+
 import kotlinx.serialization.Serializable
+
 enum class PaymentStatus {
-    NEW,
-    WAITING_PAYMENT,
-    PAID,
-    FAILED,
-    CANCELLED,
-    EXPIRED
+        NEW,
+        WAITING_PAYMENT,
+        PAID,
+        FAILED,
+        CANCELLED,
+        EXPIRED
 }
+
 enum class PaymentProvider {
-    PAGBANK
+        PAGBANK
 }
+
 enum class PaymentMethod {
-    PIX
+        PIX
 }
+
 @Serializable
 data class PaymentInfo(
         val provider: String = "PAGBANK",
@@ -30,6 +35,7 @@ data class PaymentInfo(
         val amount: Long,
         val currency: String = "BRL"
 )
+
 @Serializable
 data class BuyerInfo(
         val name: String,
@@ -37,6 +43,7 @@ data class BuyerInfo(
         val document: String,
         val phone: String? = null
 )
+
 @Serializable
 data class Product(
         val id: String,
@@ -51,6 +58,7 @@ data class Product(
         val updatedAt: String,
         val createdBy: String? = null
 )
+
 @Serializable
 data class OrderItem(
         val productId: String,
@@ -59,6 +67,7 @@ data class OrderItem(
         val quantity: Int = 1,
         val subtotal: Long // quantity * productPrice
 )
+
 @Serializable
 data class Order(
         val id: String,
@@ -73,6 +82,7 @@ data class Order(
         val createdAt: String,
         val updatedAt: String
 )
+
 @Serializable
 data class Goal(
         val id: String,
@@ -89,6 +99,7 @@ data class Goal(
         val updatedAt: String,
         val createdBy: String? = null
 )
+
 @Serializable
 data class Donation(
         val id: String,
@@ -103,13 +114,15 @@ data class Donation(
         val createdAt: String,
         val updatedAt: String
 )
+
 enum class RaffleStatus {
-    DRAFT,
-    ACTIVE,
-    SOLD_OUT,
-    DRAWN,
-    CANCELLED
+        DRAFT,
+        ACTIVE,
+        SOLD_OUT,
+        DRAWN,
+        CANCELLED
 }
+
 @Serializable
 data class Raffle(
         val id: String,
@@ -131,6 +144,7 @@ data class Raffle(
         val updatedAt: String,
         val createdBy: String? = null
 )
+
 @Serializable
 data class Ticket(
         val id: String,
@@ -143,12 +157,14 @@ data class Ticket(
         val paidAt: String? = null,
         val createdAt: String
 )
+
 enum class EventStatus {
-    DRAFT,
-    PUBLISHED,
-    CANCELLED,
-    COMPLETED
+        DRAFT,
+        PUBLISHED,
+        CANCELLED,
+        COMPLETED
 }
+
 @Serializable
 data class Event(
         val id: String,
@@ -168,6 +184,7 @@ data class Event(
         val updatedAt: String,
         val createdBy: String? = null
 )
+
 @Serializable
 data class EventParticipant(
         val id: String,
@@ -177,6 +194,7 @@ data class EventParticipant(
         val attended: Boolean = false,
         val notes: String? = null
 )
+
 @Serializable
 data class AuditLog(
         val id: String,
@@ -192,6 +210,7 @@ data class AuditLog(
         val timestamp: String,
         val details: Map<String, String> = emptyMap()
 )
+
 @Serializable
 data class DashboardStats(
         val totalDonations: Long,
@@ -205,6 +224,7 @@ data class DashboardStats(
         val recentTransactions: Int,
         val lastUpdated: String
 )
+
 @Serializable
 data class GoalStats(
         val goalId: String,
