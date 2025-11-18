@@ -46,9 +46,18 @@ class RaffleController(private val raffleService: RaffleService) {
             @Parameter(description = "Filtrar por status (ACTIVE, ENDED, DRAWN, CANCELLED)")
             @RequestParam(required = false)
             status: RaffleStatus?,
-            @Parameter(description = "Exibir apenas rifas ativas", example = "false")
-            @RequestParam(defaultValue = "false")
-            activeOnly: Boolean,
+            @Parameter(
+                    description = "Exibir apenas rifas ativas (aceita 'active' ou 'activeOnly')",
+                    example = "false"
+            )
+            @RequestParam(required = false)
+            active: Boolean?,
+            @Parameter(
+                    description = "Exibir apenas rifas ativas (deprecated, use 'active')",
+                    example = "false"
+            )
+            @RequestParam(required = false)
+            activeOnly: Boolean?,
             @Parameter(description = "Campo de ordenação", example = "createdAt")
             @RequestParam(defaultValue = "createdAt")
             sortBy: String,
@@ -60,13 +69,15 @@ class RaffleController(private val raffleService: RaffleService) {
             searchTerm: String?
     ): ResponseEntity<RafflePageResponse> {
         return try {
-            logger.info("Listing raffles - page: $page, status: $status")
+            // Aceitar tanto 'active' quanto 'activeOnly' para compatibilidade
+            val filterActive = active ?: activeOnly ?: false
+            logger.info("Listing raffles - page: $page, status: $status, active: $filterActive")
             val response =
                     raffleService.listRaffles(
                             page,
                             pageSize,
                             status,
-                            activeOnly,
+                            filterActive,
                             sortBy,
                             sortDirection,
                             searchTerm
