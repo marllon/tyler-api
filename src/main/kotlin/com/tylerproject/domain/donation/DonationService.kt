@@ -2,6 +2,7 @@ package com.tylerproject.domain.donation
 
 import com.tylerproject.domain.goal.GoalService
 import com.tylerproject.providers.PagBankProvider
+import com.tylerproject.utils.QrCodeGenerator
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service
 
 interface DonationService {
     fun createDonation(request: CreateDonationRequest): DonationResponse
+    fun createSimpleDonation(request: SimpleDonationRequest): SimpleDonationResponse
     fun getDonationById(id: String): DonationResponse?
     fun listDonations(
             page: Int,
@@ -35,6 +37,167 @@ class DonationServiceImpl(
 ) : DonationService {
 
     private val logger = LoggerFactory.getLogger(DonationServiceImpl::class.java)
+
+    override fun createSimpleDonation(request: SimpleDonationRequest): SimpleDonationResponse =
+            runBlocking {
+                logger.info(
+                        "Creating simple donation - amount: R$ ${request.amount}, anonymous: ${request.anonymous}"
+                )
+
+                // Validações
+                if (request.amount < 1.00) {
+                    throw IllegalArgumentException("Valor mínimo da doação é R$ 1,00")
+                }
+
+                if (!request.anonymous) {
+                    if (request.donor == null ||
+                                    request.donor.name.isNullOrBlank() ||
+                                    request.donor.email.isNullOrBlank()
+                    ) {
+                        throw IllegalArgumentException(
+                                "Nome e email são obrigatórios para doações não anônimas"
+                        )
+                    }
+
+                    // Validar email
+                    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+                    if (!emailRegex.matches(request.donor.email)) {
+                        throw IllegalArgumentException("Email inválido")
+                    }
+                }
+
+                // Converter REAIS para CENTAVOS (padrão PagBank)
+                val amountInCents = (request.amount * 100).toLong()
+
+                val now =
+                        LocalDateTime.now()
+                                .atOffset(ZoneOffset.UTC)
+                                .format(DateTimeFormatter.ISO_INSTANT)
+
+                // Criar doação no banco
+                val donation =
+                        Donation(
+                                id = "",
+                                donationType = DonationType.SIMPLE,
+                                targetId = "simple-donation",
+                                amount = request.amount, // Salvar em REAIS
+                                status = DonationStatus.PENDING,
+                                paymentMethod = PaymentMethod.PIX,
+                                donorName = request.donor?.name,
+                                donorEmail = request.donor?.email,
+                                donorPhone = request.donor?.phone,
+                                donorDocument = request.donor?.document,
+                                isAnonymous = request.anonymous,
+                                message = request.message,
+                                createdAt = now,
+                                updatedAt = now
+                        )
+
+                val savedDonation = donationRepository.save(donation)
+                logger.info("Simple donation created: ${savedDonation.id}")
+
+                // Gerar PIX com PagBank
+                try {
+                    val customerName =
+                            if (request.anonymous) "Doador Anônimo"
+                            else request.donor?.name ?: "Doador"
+                    val customerEmail =
+                            if (request.anonymous) "anonimo@tyler.org" else request.donor?.email
+                    // CPF válido para testes: 123.456.789-09 (formato sem pontos)
+                    val customerDocument =
+                            if (request.anonymous) "12345678909"
+                            else request.donor?.document ?: "12345678909"
+
+                    val pagBankRequest =
+                            mapOf(
+                                    "amount" to amountInCents, // PagBank usa CENTAVOS
+                                    "description" to "Doação Beneficente Tyler",
+                                    "reference_id" to savedDonation.id,
+                                    "payer" to
+                                            mapOf(
+                                                    "name" to customerName,
+                                                    "email" to customerEmail,
+                                                    "document" to customerDocument
+                                            ),
+                                    "notification_urls" to
+                                            listOf("${getWebhookUrl()}/api/webhooks/pagbank")
+                            )
+
+                    val response = pagBankProvider.createPixTransaction(pagBankRequest)
+
+                    logger.info("PagBank response received: ${response.keys}")
+                    logger.info("QR Code base64 URL: ${response["qr_code_base64_url"]}")
+
+                    val chargeId =
+                            response["transaction_id"] as? String
+                                    ?: throw IllegalStateException(
+                                            "Erro ao processar pagamento PIX - ID não encontrado na resposta"
+                                    )
+
+                    val qrCodeText = response["pix_code"] as? String ?: ""
+                    val expiresAt = response["expires_at"] as? String ?: ""
+
+                    logger.info("🔍 Texto PIX recebido - length: ${qrCodeText.length}")
+                    logger.info("🔍 Gerando QR Code localmente a partir do texto PIX")
+
+                    // Gerar QR Code localmente a partir do texto PIX
+                    val qrCodeBase64 =
+                            try {
+                                if (qrCodeText.isNotEmpty()) {
+                                    val qrCodeImage =
+                                            QrCodeGenerator.generateQrCodeBase64(qrCodeText, 300)
+                                    logger.info(
+                                            "✅ QR Code gerado com sucesso - length: ${qrCodeImage.length}"
+                                    )
+                                    logger.info("🔍 Preview base64: ${qrCodeImage.take(100)}...")
+                                    qrCodeImage
+                                } else {
+                                    logger.error("❌ Texto PIX vazio!")
+                                    ""
+                                }
+                            } catch (e: Exception) {
+                                logger.error("❌ Erro ao gerar QR Code: ${e.message}", e)
+                                e.printStackTrace()
+                                ""
+                            }
+
+                    logger.info(
+                            "🔍 QR Code base64 a ser salvo - isEmpty: ${qrCodeBase64.isEmpty()}, length: ${qrCodeBase64.length}"
+                    )
+
+                    // Atualizar doação com dados do PIX
+                    donationRepository.update(
+                            savedDonation.id,
+                            mapOf(
+                                    "pagbankChargeId" to chargeId,
+                                    "qrCodeText" to qrCodeText,
+                                    "qrCodeImageBase64" to qrCodeBase64,
+                                    "expiresAt" to expiresAt,
+                                    "updatedAt" to now
+                            )
+                    )
+
+                    logger.info(
+                            "PIX charge created for simple donation - donationId: ${savedDonation.id}, chargeId: $chargeId"
+                    )
+
+                    SimpleDonationResponse(
+                            id = savedDonation.id,
+                            paymentId = chargeId,
+                            amount = request.amount,
+                            qrCode = qrCodeText,
+                            qrCodeImage = qrCodeBase64.takeIf { it.isNotEmpty() },
+                            status = "PENDING",
+                            expiresAt = expiresAt
+                    )
+                } catch (e: Exception) {
+                    logger.error(
+                            "Error creating PIX for simple donation ${savedDonation.id}: ${e.message}",
+                            e
+                    )
+                    throw IllegalStateException("Erro ao processar pagamento PIX")
+                }
+            }
 
     override fun createDonation(request: CreateDonationRequest): DonationResponse = runBlocking {
         logger.info(
@@ -316,6 +479,7 @@ class DonationServiceImpl(
                 DonationType.GOAL -> processGoalDonation(donation)
                 DonationType.RAFFLE -> processRaffleDonation(donation)
                 DonationType.ORDER -> processOrderDonation(donation)
+                DonationType.SIMPLE -> logger.info("Simple donation - no processing needed")
             }
 
             val now =
@@ -369,6 +533,9 @@ class DonationServiceImpl(
             DonationType.ORDER -> {
                 logger.warn("ORDER validation not implemented yet")
             }
+            DonationType.SIMPLE -> {
+                // Doação simples não precisa validação de target
+            }
         }
     }
 
@@ -379,6 +546,7 @@ class DonationServiceImpl(
             }
             DonationType.RAFFLE -> "Rifa $targetId"
             DonationType.ORDER -> "Pedido $targetId"
+            DonationType.SIMPLE -> "Doação Beneficente Tyler"
         }
     }
 

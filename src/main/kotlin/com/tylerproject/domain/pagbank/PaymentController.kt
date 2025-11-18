@@ -1,6 +1,8 @@
 package com.tylerproject.domain.pagbank
 
+import com.tylerproject.domain.donation.DonationRepository
 import com.tylerproject.providers.PagBankProvider
+import com.tylerproject.utils.QrCodeGenerator
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -20,7 +22,12 @@ import org.springframework.web.bind.annotation.*
         name = "💳 Payments",
         description = "API de pagamentos PIX via PagBank para doações e checkout"
 )
-class PaymentController @Autowired constructor(private val pagBankProvider: PagBankProvider) {
+class PaymentController
+@Autowired
+constructor(
+        private val pagBankProvider: PagBankProvider,
+        private val donationRepository: DonationRepository
+) {
         private val logger = LoggerFactory.getLogger(PaymentController::class.java)
 
         @PostMapping("/checkout")
@@ -130,21 +137,87 @@ class PaymentController @Autowired constructor(private val pagBankProvider: PagB
                 return try {
                         logger.info("📊 Consultando status do pagamento: $paymentId")
 
+                        // Buscar doação pelo ID interno
+                        val donation =
+                                donationRepository.findById(paymentId)
+                                        ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                                .build()
+
+                        // Pegar o pagbankChargeId (ORDE_xxx)
+                        val pagbankChargeId =
+                                donation.pagbankChargeId
+                                        ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                                .build()
+
+                        logger.info("🔍 PagBank Charge ID: $pagbankChargeId")
+
                         val pagBankResponse = runBlocking {
-                                pagBankProvider.getTransactionStatus(paymentId)
+                                pagBankProvider.getTransactionStatus(pagbankChargeId)
                         }
+
+                        // Amount já está em REAIS no Firestore (não precisa converter)
+                        val amountInReais = donation.amount
+
+                        // Gerar QR Code se não existir ou estiver vazio e salvar no Firestore
+                        val qrCodeImage =
+                                if (donation.qrCodeImageBase64.isNullOrBlank()) {
+                                        donation.qrCodeText?.let { qrText ->
+                                                if (qrText.isNotBlank()) {
+                                                        try {
+                                                                logger.info(
+                                                                        "🔍 Gerando QR Code para doação ${donation.id}"
+                                                                )
+                                                                val generatedQrCode =
+                                                                        QrCodeGenerator
+                                                                                .generateQrCodeBase64(
+                                                                                        qrText,
+                                                                                        300
+                                                                                )
+
+                                                                // Salvar no Firestore para não
+                                                                // precisar gerar novamente
+                                                                donationRepository.update(
+                                                                        donation.id,
+                                                                        mapOf(
+                                                                                "qrCodeImageBase64" to
+                                                                                        generatedQrCode
+                                                                        )
+                                                                )
+                                                                logger.info(
+                                                                        "✅ QR Code gerado e salvo no Firestore - length: ${generatedQrCode.length}"
+                                                                )
+
+                                                                generatedQrCode
+                                                        } catch (e: Exception) {
+                                                                logger.error(
+                                                                        "❌ Erro ao gerar QR Code: ${e.message}"
+                                                                )
+                                                                null
+                                                        }
+                                                } else null
+                                        }
+                                } else {
+                                        donation.qrCodeImageBase64
+                                }
 
                         val response =
                                 PaymentStatusResponse(
-                                        id = pagBankResponse["id"] as? String ?: paymentId,
-                                        status = pagBankResponse["status"] as? String ?: "UNKNOWN",
-                                        amount = extractAmount(pagBankResponse),
-                                        paidAt = pagBankResponse["paid_at"] as? String,
-                                        createdAt = pagBankResponse["created_at"] as? String ?: "",
-                                        updatedAt = pagBankResponse["updated_at"] as? String ?: ""
+                                        id = donation.id,
+                                        status =
+                                                donation.status
+                                                        .name, // Convertendo enum para String
+                                        amount = amountInReais,
+                                        qrCode = donation.qrCodeText,
+                                        qrCodeImage = qrCodeImage,
+                                        expiresAt = donation.expiresAt,
+                                        paidAt = donation.paidAt, // Data de pagamento do Firestore
+                                        createdAt = donation.createdAt ?: "",
+                                        updatedAt = donation.updatedAt ?: ""
                                 )
 
-                        logger.info("✅ Status consultado - Status: ${response.status}")
+                        logger.info(
+                                "✅ Status consultado - Status: ${response.status}, Amount: ${response.amount}"
+                        )
                         ResponseEntity.ok(response)
                 } catch (e: Exception) {
                         logger.error("❌ Erro ao consultar status: ${e.message}", e)

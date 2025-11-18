@@ -39,6 +39,7 @@ data class Donation(
             DonationType.GOAL -> "Meta ID: $targetId"
             DonationType.RAFFLE -> "Rifa ID: $targetId"
             DonationType.ORDER -> "Pedido ID: $targetId"
+            DonationType.SIMPLE -> "Doação Simples"
         }
     }
 }

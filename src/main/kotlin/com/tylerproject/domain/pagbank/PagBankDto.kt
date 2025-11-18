@@ -24,6 +24,9 @@ data class PaymentStatusResponse(
         val id: String,
         val status: String,
         val amount: Double,
+        val qrCode: String? = null,
+        val qrCodeImage: String? = null,
+        val expiresAt: String? = null,
         val paidAt: String? = null,
         val createdAt: String,
         val updatedAt: String

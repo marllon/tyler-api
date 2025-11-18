@@ -3,7 +3,8 @@ package com.tylerproject.domain.donation
 enum class DonationType {
     GOAL,
     RAFFLE,
-    ORDER
+    ORDER,
+    SIMPLE // Doação simples sem vínculo
 }
 
 enum class DonationStatus {

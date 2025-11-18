@@ -53,30 +53,31 @@ data class DonationResponse(
         val createdAt: String,
         val updatedAt: String
 ) {
-    companion object {
-        fun fromEntity(donation: Donation): DonationResponse {
-            return DonationResponse(
-                    id = donation.id,
-                    donationType = donation.donationType,
-                    targetId = donation.targetId,
-                    targetDescription = donation.getTargetDescription(),
-                    amount = donation.amount,
-                    status = donation.status,
-                    paymentMethod = donation.paymentMethod,
-                    pagbankChargeId = donation.pagbankChargeId,
-                    qrCodeText = donation.qrCodeText,
-                    qrCodeImageBase64 = donation.qrCodeImageBase64,
-                    expiresAt = donation.expiresAt,
-                    donorName = if (donation.isAnonymous) "Anônimo" else donation.donorName,
-                    donorEmail = donation.donorEmail,
-                    isAnonymous = donation.isAnonymous,
-                    message = donation.message,
-                    paidAt = donation.paidAt,
-                    createdAt = donation.createdAt,
-                    updatedAt = donation.updatedAt
-            )
+        companion object {
+                fun fromEntity(donation: Donation): DonationResponse {
+                        return DonationResponse(
+                                id = donation.id,
+                                donationType = donation.donationType,
+                                targetId = donation.targetId,
+                                targetDescription = donation.getTargetDescription(),
+                                amount = donation.amount,
+                                status = donation.status,
+                                paymentMethod = donation.paymentMethod,
+                                pagbankChargeId = donation.pagbankChargeId,
+                                qrCodeText = donation.qrCodeText,
+                                qrCodeImageBase64 = donation.qrCodeImageBase64,
+                                expiresAt = donation.expiresAt,
+                                donorName =
+                                        if (donation.isAnonymous) "Anônimo" else donation.donorName,
+                                donorEmail = donation.donorEmail,
+                                isAnonymous = donation.isAnonymous,
+                                message = donation.message,
+                                paidAt = donation.paidAt,
+                                createdAt = donation.createdAt,
+                                updatedAt = donation.updatedAt
+                        )
+                }
         }
-    }
 }
 
 data class DonationPageResponse(
@@ -87,6 +88,40 @@ data class DonationPageResponse(
         val totalPages: Int,
         val hasNext: Boolean,
         val hasPrevious: Boolean
+)
+
+// DTO para doação simples
+data class SimpleDonationRequest
+@JsonCreator
+constructor(
+        @JsonProperty("amount")
+        @field:NotNull(message = "Valor é obrigatório")
+        @field:DecimalMin(value = "1.00", message = "Valor mínimo da doação é R$ 1,00")
+        val amount: Double, // Valor em REAIS (padrão brasileiro: 1.50 = R$ 1,50)
+        @JsonProperty("anonymous") val anonymous: Boolean = false,
+        @JsonProperty("message")
+        @field:Size(max = 500, message = "Mensagem deve ter no máximo 500 caracteres")
+        val message: String? = null,
+        @JsonProperty("donor") val donor: DonorInfo? = null
+)
+
+data class DonorInfo
+@JsonCreator
+constructor(
+        @JsonProperty("name") val name: String? = null,
+        @JsonProperty("email") val email: String? = null,
+        @JsonProperty("document") val document: String? = null,
+        @JsonProperty("phone") val phone: String? = null
+)
+
+data class SimpleDonationResponse(
+        val id: String,
+        val paymentId: String,
+        val amount: Double, // Valor em REAIS
+        val qrCode: String,
+        val qrCodeImage: String? = null,
+        val status: String,
+        val expiresAt: String? = null
 )
 
 data class PagBankWebhookPayload
