@@ -33,7 +33,10 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
                     }
 
             val orderWithId = order.copy(id = docRef.id)
-            docRef.set(orderWithId).get()
+            
+            // Converter para DTO antes de salvar
+            val dto = OrderFirestoreDto.fromDomain(orderWithId)
+            docRef.set(dto).get()
 
             logger.info("Order saved successfully: ${orderWithId.id}")
             orderWithId
@@ -57,11 +60,12 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
         return try {
             val docSnapshot = collection.document(id).get().get()
             if (docSnapshot.exists()) {
-                docSnapshot.toObject(Order::class.java)
+                val dto = docSnapshot.toObject(OrderFirestoreDto::class.java)
+                dto?.toDomain()
             } else {
                 null
             }
-        } catch (e: ExecutionException) {
+        } catch (e: Exception) {
             logger.error("Error finding order by id $id: ${e.message}", e)
             null
         }
@@ -73,7 +77,8 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
                     collection.whereEqualTo("orderNumber", orderNumber).limit(1).get().get()
 
             if (!querySnapshot.isEmpty) {
-                querySnapshot.documents.first().toObject(Order::class.java)
+                val dto = querySnapshot.documents.first().toObject(OrderFirestoreDto::class.java)
+                dto?.toDomain()
             } else {
                 null
             }
@@ -108,9 +113,13 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
 
             val orders =
                     if (limit != null && documents.size > limit) {
-                        documents.take(limit).mapNotNull { it.toObject(Order::class.java) }
+                        documents.take(limit).mapNotNull { 
+                            it.toObject(OrderFirestoreDto::class.java)?.toDomain() 
+                        }
                     } else {
-                        documents.mapNotNull { it.toObject(Order::class.java) }
+                        documents.mapNotNull { 
+                            it.toObject(OrderFirestoreDto::class.java)?.toDomain() 
+                        }
                     }
 
             val nextCursor =
@@ -144,7 +153,9 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
             }
 
             val querySnapshot = query.get().get()
-            querySnapshot.documents.mapNotNull { it.toObject(Order::class.java) }
+            querySnapshot.documents.mapNotNull { 
+                it.toObject(OrderFirestoreDto::class.java)?.toDomain() 
+            }
         } catch (e: Exception) {
             logger.error(
                     "Error finding orders by userId $userId and status $status: ${e.message}",
@@ -160,7 +171,8 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
                     collection.whereEqualTo("paymentId", paymentId).limit(1).get().get()
 
             if (!querySnapshot.isEmpty) {
-                querySnapshot.documents.first().toObject(Order::class.java)
+                val dto = querySnapshot.documents.first().toObject(OrderFirestoreDto::class.java)
+                dto?.toDomain()
             } else {
                 null
             }

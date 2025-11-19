@@ -41,7 +41,7 @@ class OrderController(private val orderService: OrderService) {
             @RequestHeader("Authorization")
             authToken: String,
             @Valid @RequestBody request: CreateOrderRequest
-    ): ResponseEntity<CreateOrderResponse> {
+    ): ResponseEntity<Any> {
         return try {
             val user = validateFirebaseToken(authToken)
 
@@ -53,11 +53,12 @@ class OrderController(private val orderService: OrderService) {
 
             ResponseEntity.status(HttpStatus.CREATED).body(response)
         } catch (e: IllegalArgumentException) {
-            logger.error("Invalid order request: ${e.message}")
-            ResponseEntity.badRequest().build()
+            logger.error("Invalid order request: ${e.message}", e)
+            ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Invalid request")))
         } catch (e: Exception) {
             logger.error("Error creating order: ${e.message}", e)
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(mapOf("error" to "Internal server error", "details" to e.message))
         }
     }
 

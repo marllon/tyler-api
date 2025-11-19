@@ -5,6 +5,7 @@ import com.tylerproject.domain.donation.DonationStatus
 import com.tylerproject.domain.donation.DonationType
 import com.tylerproject.domain.donation.PaymentMethod
 import com.tylerproject.domain.product.ProductRepository
+import com.tylerproject.domain.transaction.*
 import com.tylerproject.providers.PagBankProvider
 import com.tylerproject.utils.QrCodeGenerator
 import java.time.LocalDateTime
@@ -28,6 +29,7 @@ class OrderServiceImpl(
         private val orderRepository: OrderRepository,
         private val productRepository: ProductRepository,
         private val donationRepository: DonationRepository,
+        private val transactionService: TransactionService,
         private val pagBankProvider: PagBankProvider
 ) : OrderService {
 
@@ -81,97 +83,112 @@ class OrderServiceImpl(
         // 3. Gerar número único do pedido
         val orderNumber = generateOrderNumber()
 
-        // 4. Criar pedido
-        val now = LocalDateTime.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
-
-        val order =
-                Order(
-                        id = "",
-                        orderNumber = orderNumber,
-                        userId = userId,
-                        userEmail = userEmail,
-                        status = OrderStatus.PENDING,
-                        items = productItems,
-                        subtotal = subtotal,
-                        shippingCost = shippingCost,
-                        total = total,
-                        paymentMethod = request.paymentMethod,
-                        paymentStatus = DonationStatus.PENDING,
-                        shippingMethod = request.shippingMethod,
-                        shippingAddress = request.shippingAddress.toShippingAddress(),
-                        notes = request.notes,
-                        createdAt = now,
-                        updatedAt = now
+        // 4. Criar ProductOrderDetails para a Transaction
+        val orderDetails = ProductOrderDetails(
+            orderNumber = orderNumber,
+            items = productItems.map { 
+                com.tylerproject.domain.transaction.OrderItem(
+                    productId = it.productId,
+                    productName = it.productName,
+                    productImage = it.imageUrl,
+                    quantity = it.quantity,
+                    unitPrice = it.unitPrice,
+                    subtotal = it.subtotal
                 )
+            },
+            subtotal = subtotal,
+            shippingMethod = when (request.shippingMethod) {
+                ShippingMethod.COLLECT_ON_DELIVERY -> com.tylerproject.domain.transaction.ShippingMethod.COLLECT_ON_DELIVERY
+                ShippingMethod.SEDEX -> com.tylerproject.domain.transaction.ShippingMethod.SEDEX
+                ShippingMethod.PAC -> com.tylerproject.domain.transaction.ShippingMethod.PAC
+                ShippingMethod.CUSTOM -> com.tylerproject.domain.transaction.ShippingMethod.CUSTOM
+            },
+            shippingCost = shippingCost,
+            shippingAddress = com.tylerproject.domain.transaction.ShippingAddress(
+                recipientName = request.shippingAddress.name,
+                recipientPhone = request.shippingAddress.phone,
+                street = request.shippingAddress.street,
+                number = request.shippingAddress.number,
+                complement = request.shippingAddress.complement,
+                neighborhood = request.shippingAddress.neighborhood,
+                city = request.shippingAddress.city,
+                state = request.shippingAddress.state,
+                zipCode = request.shippingAddress.zipCode
+            ),
+            trackingCode = null,
+            carrier = null,
+            trackingEvents = emptyList()
+        )
 
-        val savedOrder = orderRepository.save(order)
-        logger.info("Order created: ${savedOrder.orderNumber} (ID: ${savedOrder.id})")
+        // 5. Criar CustomerInfo
+        val customerInfo = CustomerInfo(
+            userId = userId,
+            name = request.shippingAddress.name,
+            email = userEmail,
+            phone = request.shippingAddress.phone,
+            document = null,
+            isAnonymous = false
+        )
 
-        // 5. Criar pagamento se for PIX
-        val paymentDetails = if (request.paymentMethod == PaymentMethod.PIX) {
-            createPixPayment(savedOrder)
-        } else {
-            null
-        }
+        // 6. Criar Transaction via TransactionService
+        val transactionRequest = CreateTransactionRequest(
+            type = TransactionType.PRODUCT_ORDER,
+            amount = total,
+            customer = customerInfo,
+            paymentMethod = when (request.paymentMethod) {
+                PaymentMethod.PIX -> TransactionPaymentMethod.PIX
+                PaymentMethod.CREDIT_CARD -> TransactionPaymentMethod.CREDIT_CARD
+                PaymentMethod.DEBIT_CARD -> TransactionPaymentMethod.DEBIT_CARD
+                PaymentMethod.BOLETO -> TransactionPaymentMethod.BANK_SLIP
+            },
+            productOrderDetails = orderDetails,
+            targetId = null,
+            targetType = null,
+            notes = request.notes
+        )
 
-        CreateOrderResponse(order = OrderResponse.fromEntity(savedOrder), paymentDetails = paymentDetails)
-    }
+        val transaction = transactionService.createTransaction(transactionRequest)
+        logger.info("Transaction created: ${transaction.id} for order $orderNumber")
 
-    private suspend fun createPixPayment(order: Order): PaymentDetailsResponse? {
-        return try {
-            logger.info("Creating PIX payment for order ${order.orderNumber}")
+        // 7. Criar Order legada (para compatibilidade temporária)
+        val now = LocalDateTime.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
+        val order = Order(
+                id = transaction.id, // ✅ Usar mesmo ID da transaction
+                orderNumber = orderNumber,
+                userId = userId,
+                userEmail = userEmail,
+                status = OrderStatus.PENDING,
+                items = productItems,
+                subtotal = subtotal,
+                shippingCost = shippingCost,
+                total = total,
+                paymentMethod = request.paymentMethod,
+                paymentStatus = DonationStatus.PENDING,
+                paymentId = transaction.payment?.paymentId, // ✅ ID do PagBank
+                shippingMethod = request.shippingMethod,
+                shippingAddress = request.shippingAddress.toShippingAddress(),
+                notes = request.notes,
+                createdAt = now,
+                updatedAt = now
+        )
 
-            val amountInCents = (order.total * 100).toLong()
+        orderRepository.save(order)
+        logger.info("Legacy Order created for compatibility: ${order.id}")
 
-            // Criar request para PagBank
-            val pagBankRequest = mapOf(
-                    "amount" to amountInCents,
-                    "description" to "Pedido ${order.orderNumber}",
-                    "reference_id" to order.orderNumber, // Usar orderNumber como reference_id
-                    "payer" to mapOf(
-                            "name" to order.shippingAddress.name,
-                            "email" to order.userEmail,
-                            "document" to "12345678909" // CPF padrão para teste
-                    ),
-                    "notification_urls" to listOf("${getWebhookUrl()}/api/webhooks/pagbank")
-            )
-
-            val response = pagBankProvider.createPixTransaction(pagBankRequest)
-
-            val chargeId = response["transaction_id"] as? String
-                    ?: throw IllegalStateException("PagBank não retornou transaction_id")
-
-            val qrCodeText = response["pix_code"] as? String ?: ""
-            val expiresAt = response["expires_at"] as? String ?: ""
-
-            // Gerar QR Code localmente
-            val qrCodeImage = if (qrCodeText.isNotEmpty()) {
-                QrCodeGenerator.generateQrCodeBase64(qrCodeText, 300)
-            } else {
-                ""
-            }
-
-            // Atualizar pedido com informações de pagamento
-            orderRepository.update(
-                    order.id,
-                    mapOf(
-                            "paymentId" to chargeId,
-                            "updatedAt" to LocalDateTime.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
-                    )
-            )
-
-            logger.info("PIX payment created for order ${order.orderNumber}, paymentId: $chargeId")
-
+        // 8. Montar resposta com dados de pagamento
+        val paymentDetails = transaction.payment?.let {
             PaymentDetailsResponse(
-                    qrCode = qrCodeText,
-                    qrCodeImage = qrCodeImage,
-                    paymentId = chargeId,
-                    expiresAt = expiresAt
+                qrCode = it.qrCodeText ?: "",
+                qrCodeImage = it.qrCodeImageBase64 ?: "",
+                paymentId = it.paymentId,
+                expiresAt = it.expiresAt ?: ""
             )
-        } catch (e: Exception) {
-            logger.error("Error creating PIX payment for order ${order.orderNumber}: ${e.message}", e)
-            null
         }
+
+        CreateOrderResponse(
+            order = OrderResponse.fromEntity(order),
+            paymentDetails = paymentDetails
+        )
     }
 
     override fun getOrderById(userId: String, orderId: String): OrderResponse? {
@@ -253,10 +270,18 @@ class OrderServiceImpl(
             return null
         }
 
-        val paymentDetails = if (order.paymentId != null) {
-            PaymentDetailsResponse(paymentId = order.paymentId)
-        } else {
-            null
+        // Buscar Transaction para obter dados completos de pagamento
+        val transaction = transactionService.findById(orderId)
+        val paymentDetails = transaction?.payment?.let { payment ->
+            PaymentDetailsResponse(
+                    qrCode = payment.qrCodeText,
+                    qrCodeImage = payment.qrCodeImageBase64,
+                    paymentId = payment.paymentId,
+                    expiresAt = payment.expiresAt,
+                    boletoUrl = null,
+                    boletoBarcode = null,
+                    redirectUrl = null
+            )
         }
 
         val tracking = if (order.trackingCode != null) {
@@ -346,9 +371,5 @@ class OrderServiceImpl(
         val sequence = (now.atZone(java.time.ZoneId.systemDefault()).toEpochSecond() % 10000).toString().padStart(4, '0')
 
         return "ORD-$dateStr-$sequence"
-    }
-
-    private fun getWebhookUrl(): String {
-        return System.getenv("WEBHOOK_BASE_URL") ?: "https://tyler-api-production.com"
     }
 }
