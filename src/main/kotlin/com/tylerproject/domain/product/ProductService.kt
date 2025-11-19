@@ -3,6 +3,7 @@ import com.tylerproject.infrastructure.repository.PageDirection
 import com.tylerproject.infrastructure.repository.PageRequest
 import com.tylerproject.infrastructure.repository.SortDirection
 import com.tylerproject.service.ImageUploadService
+import com.tylerproject.utils.HtmlSanitizer
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -13,17 +14,28 @@ import org.springframework.web.multipart.MultipartFile
 @Service
 class ProductService(
         private val productRepository: ProductRepository,
-        private val imageUploadService: ImageUploadService
+        private val imageUploadService: ImageUploadService,
+        private val htmlSanitizer: HtmlSanitizer
 ) {
     private val logger = LoggerFactory.getLogger(ProductService::class.java)
     fun createProduct(request: CreateProductRequest, createdBy: String? = null): ProductResponse {
         val now = LocalDateTime.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
         val id = UUID.randomUUID().toString()
+        
+        // Sanitizar descrição HTML
+        val sanitizedDescription = htmlSanitizer.sanitize(request.description)
+        val validationResult = htmlSanitizer.validate(sanitizedDescription)
+        
+        if (!validationResult.valid) {
+            logger.warn("Invalid HTML in product description: ${validationResult.message}")
+            throw IllegalArgumentException(validationResult.message)
+        }
+        
         val product =
                 Product(
                         id = id,
                         name = request.name,
-                        description = request.description,
+                        description = validationResult.sanitizedHtml,
                         price = request.price,
                         images = emptyList(),
                         active = true,
@@ -92,10 +104,26 @@ class ProductService(
     fun updateProduct(id: String, request: UpdateProductRequest): ProductResponse? {
         val existing = productRepository.findById(id) ?: return null
         val now = LocalDateTime.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)
+        
+        // Sanitizar descrição HTML se foi fornecida
+        val sanitizedDescription = if (request.description != null) {
+            val sanitized = htmlSanitizer.sanitize(request.description)
+            val validationResult = htmlSanitizer.validate(sanitized)
+            
+            if (!validationResult.valid) {
+                logger.warn("Invalid HTML in product description update: ${validationResult.message}")
+                throw IllegalArgumentException(validationResult.message)
+            }
+            
+            validationResult.sanitizedHtml
+        } else {
+            existing.description
+        }
+        
         val updated =
                 existing.copy(
                         name = request.name ?: existing.name,
-                        description = request.description ?: existing.description,
+                        description = sanitizedDescription,
                         price = request.price ?: existing.price,
                         active = request.active ?: existing.active,
                         category = request.category ?: existing.category,
