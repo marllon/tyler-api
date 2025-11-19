@@ -36,6 +36,7 @@ constructor(
 data class DonationResponse(
         val id: String,
         val donationType: DonationType,
+        val donationTypeDescription: String, // Descrição amigável do tipo
         val targetId: String,
         val targetDescription: String,
         val amount: Double,
@@ -58,6 +59,7 @@ data class DonationResponse(
                         return DonationResponse(
                                 id = donation.id,
                                 donationType = donation.donationType,
+                                donationTypeDescription = donation.getTypeDescription(),
                                 targetId = donation.targetId,
                                 targetDescription = donation.getTargetDescription(),
                                 amount = donation.amount,

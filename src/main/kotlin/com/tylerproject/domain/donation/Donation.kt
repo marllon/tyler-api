@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 data class Donation(
         val id: String = "",
         val donationType: DonationType = DonationType.GOAL,
-        val targetId: String = "",
+        val targetId: String =
+                "", // Para SIMPLE sempre será "simple-donation", demais tipos: ID da entidade
         val amount: Double = 0.0,
         val status: DonationStatus = DonationStatus.PENDING,
         val paymentMethod: PaymentMethod? = null,
@@ -34,12 +35,16 @@ data class Donation(
 
     fun canBeProcessed(): Boolean = status == DonationStatus.PAID && processedAt == null
 
+    fun isSimpleDonation(): Boolean = donationType == DonationType.SIMPLE
+
     fun getTargetDescription(): String {
         return when (donationType) {
+            DonationType.SIMPLE -> "Doação Livre"
             DonationType.GOAL -> "Meta ID: $targetId"
             DonationType.RAFFLE -> "Rifa ID: $targetId"
             DonationType.ORDER -> "Pedido ID: $targetId"
-            DonationType.SIMPLE -> "Doação Simples"
         }
     }
+
+    fun getTypeDescription(): String = DonationType.getDescription(donationType)
 }
