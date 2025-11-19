@@ -18,6 +18,7 @@ interface ProductRepository {
     fun countByCategory(category: String?): Int
     fun countTotal(): Int
     fun searchByName(searchTerm: String, limit: Int = 20): List<Product>
+    fun decrementStock(productId: String, quantity: Int): Boolean
 }
 enum class ProductSortField(val fieldName: String) {
     CREATED_AT("createdAt"),

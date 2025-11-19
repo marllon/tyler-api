@@ -49,4 +49,22 @@ class FirestoreProductRepository :
                 .atOffset(java.time.ZoneOffset.UTC)
                 .format(java.time.format.DateTimeFormatter.ISO_INSTANT)
     }
+
+    override fun decrementStock(productId: String, quantity: Int): Boolean {
+        return try {
+            val product = findById(productId) ?: return false
+            val currentStock = product.stock ?: 0
+            val newStock = currentStock - quantity
+
+            if (newStock < 0) {
+                throw IllegalStateException("Insufficient stock for product $productId")
+            }
+
+            val updated = product.copy(stock = newStock, updatedAt = currentTimestamp())
+            save(updated)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

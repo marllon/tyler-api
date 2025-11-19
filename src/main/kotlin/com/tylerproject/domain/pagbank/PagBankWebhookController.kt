@@ -3,6 +3,7 @@ package com.tylerproject.domain.pagbank
 import com.tylerproject.domain.donation.DonationService
 import com.tylerproject.domain.donation.PagBankWebhookPayload
 import com.tylerproject.domain.raffle.RaffleService
+import com.tylerproject.domain.order.OrderService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import java.time.LocalDateTime
@@ -21,7 +22,8 @@ import org.springframework.web.bind.annotation.*
 )
 class PagBankWebhookController(
         private val donationService: DonationService,
-        private val raffleService: RaffleService
+        private val raffleService: RaffleService,
+        private val orderService: OrderService
 ) {
     private val logger = LoggerFactory.getLogger(PagBankWebhookController::class.java)
 
@@ -29,7 +31,7 @@ class PagBankWebhookController(
     @Operation(
             summary = "Webhook do PagBank",
             description =
-                    "Endpoint chamado pelo PagBank quando há mudança no status de um pagamento. Processa automaticamente doações, rifas e outros pagamentos."
+                    "Endpoint chamado pelo PagBank quando há mudança no status de um pagamento. Processa automaticamente doações, rifas, pedidos e outros pagamentos."
     )
     fun handlePagBankWebhook(
             @RequestBody payload: PagBankWebhookPayload
@@ -43,6 +45,10 @@ class PagBankWebhookController(
 
             val result =
                     when {
+                        referenceId?.startsWith("ORD-") == true -> {
+                            logger.info("🛒 Processing order payment webhook - orderNumber: $referenceId")
+                            processOrderWebhook(payload, referenceId)
+                        }
                         referenceId?.startsWith("raffle_") == true -> {
                             logger.info("🎰 Processing raffle payment webhook")
                             raffleService.processWebhook(payload)
@@ -81,6 +87,51 @@ class PagBankWebhookController(
                                     message = "Internal error: ${e.message}"
                             )
                     )
+        }
+    }
+
+    private fun processOrderWebhook(
+            payload: PagBankWebhookPayload,
+            orderNumber: String
+    ): com.tylerproject.domain.donation.WebhookProcessingResult {
+        val charge = payload.charges?.firstOrNull()
+        val status = charge?.status ?: ""
+        val paymentId = charge?.id
+
+        return try {
+            if (status.uppercase() == "PAID" && paymentId != null) {
+                // OrderService.processOrderPayment usa paymentId para encontrar e processar o pedido
+                val processed = orderService.processOrderPayment(paymentId)
+                
+                com.tylerproject.domain.donation.WebhookProcessingResult(
+                        success = true,
+                        donationId = orderNumber,
+                        previousStatus = com.tylerproject.domain.donation.DonationStatus.PENDING,
+                        newStatus = com.tylerproject.domain.donation.DonationStatus.PAID,
+                        processed = processed,
+                        message = "Order payment processed successfully"
+                )
+            } else {
+                logger.info("Order $orderNumber status: $status (no action needed)")
+                com.tylerproject.domain.donation.WebhookProcessingResult(
+                        success = true,
+                        donationId = orderNumber,
+                        previousStatus = null,
+                        newStatus = null,
+                        processed = false,
+                        message = "Status not processed: $status"
+                )
+            }
+        } catch (e: Exception) {
+            logger.error("Error processing order webhook: ${e.message}", e)
+            com.tylerproject.domain.donation.WebhookProcessingResult(
+                    success = false,
+                    donationId = orderNumber,
+                    previousStatus = null,
+                    newStatus = null,
+                    processed = false,
+                    message = "Error: ${e.message}"
+            )
         }
     }
 
