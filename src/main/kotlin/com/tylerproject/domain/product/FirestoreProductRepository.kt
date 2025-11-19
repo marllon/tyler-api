@@ -1,8 +1,10 @@
 package com.tylerproject.domain.product
+
 import com.tylerproject.infrastructure.repository.GenericFirestoreRepository
 import com.tylerproject.infrastructure.repository.PageRequest
 import com.tylerproject.infrastructure.repository.PageResult
 import org.springframework.stereotype.Repository
+
 @Repository
 class FirestoreProductRepository :
         GenericFirestoreRepository<Product>("products", Product::class.java), ProductRepository {

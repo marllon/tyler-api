@@ -2,8 +2,6 @@ package com.tylerproject.domain.order
 
 import com.google.cloud.firestore.Firestore
 import com.google.cloud.firestore.Query
-import com.tylerproject.domain.donation.DonationStatus
-import java.util.concurrent.ExecutionException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Repository
 
@@ -12,7 +10,11 @@ interface OrderRepository {
     fun update(orderId: String, updates: Map<String, Any>)
     fun findById(id: String): Order?
     fun findByOrderNumber(orderNumber: String): Order?
-    fun findByUserId(userId: String, limit: Int? = null, startAfter: String? = null): Pair<List<Order>, String?>
+    fun findByUserId(
+            userId: String,
+            limit: Int? = null,
+            startAfter: String? = null
+    ): Pair<List<Order>, String?>
     fun findByUserIdAndStatus(userId: String, status: OrderStatus, limit: Int? = null): List<Order>
     fun findByPaymentId(paymentId: String): Order?
 }
@@ -33,7 +35,7 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
                     }
 
             val orderWithId = order.copy(id = docRef.id)
-            
+
             // Converter para DTO antes de salvar
             val dto = OrderFirestoreDto.fromDomain(orderWithId)
             docRef.set(dto).get()
@@ -94,7 +96,10 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
             startAfter: String?
     ): Pair<List<Order>, String?> {
         return try {
-            var query: Query = collection.whereEqualTo("userId", userId).orderBy("createdAt", Query.Direction.DESCENDING)
+            var query: Query =
+                    collection
+                            .whereEqualTo("userId", userId)
+                            .orderBy("createdAt", Query.Direction.DESCENDING)
 
             // Paginação
             if (startAfter != null) {
@@ -113,12 +118,12 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
 
             val orders =
                     if (limit != null && documents.size > limit) {
-                        documents.take(limit).mapNotNull { 
-                            it.toObject(OrderFirestoreDto::class.java)?.toDomain() 
+                        documents.take(limit).mapNotNull {
+                            it.toObject(OrderFirestoreDto::class.java)?.toDomain()
                         }
                     } else {
-                        documents.mapNotNull { 
-                            it.toObject(OrderFirestoreDto::class.java)?.toDomain() 
+                        documents.mapNotNull {
+                            it.toObject(OrderFirestoreDto::class.java)?.toDomain()
                         }
                     }
 
@@ -153,8 +158,8 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
             }
 
             val querySnapshot = query.get().get()
-            querySnapshot.documents.mapNotNull { 
-                it.toObject(OrderFirestoreDto::class.java)?.toDomain() 
+            querySnapshot.documents.mapNotNull {
+                it.toObject(OrderFirestoreDto::class.java)?.toDomain()
             }
         } catch (e: Exception) {
             logger.error(
@@ -167,8 +172,7 @@ class FirestoreOrderRepository(private val firestore: Firestore) : OrderReposito
 
     override fun findByPaymentId(paymentId: String): Order? {
         return try {
-            val querySnapshot =
-                    collection.whereEqualTo("paymentId", paymentId).limit(1).get().get()
+            val querySnapshot = collection.whereEqualTo("paymentId", paymentId).limit(1).get().get()
 
             if (!querySnapshot.isEmpty) {
                 val dto = querySnapshot.documents.first().toObject(OrderFirestoreDto::class.java)

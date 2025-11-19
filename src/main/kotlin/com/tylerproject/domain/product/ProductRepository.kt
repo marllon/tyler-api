@@ -1,6 +1,8 @@
 package com.tylerproject.domain.product
+
 import com.tylerproject.infrastructure.repository.PageRequest
 import com.tylerproject.infrastructure.repository.PageResult
+
 interface ProductRepository {
     fun save(product: Product): Product
     fun findById(id: String): Product?
@@ -20,6 +22,7 @@ interface ProductRepository {
     fun searchByName(searchTerm: String, limit: Int = 20): List<Product>
     fun decrementStock(productId: String, quantity: Int): Boolean
 }
+
 enum class ProductSortField(val fieldName: String) {
     CREATED_AT("createdAt"),
     UPDATED_AT("updatedAt"),

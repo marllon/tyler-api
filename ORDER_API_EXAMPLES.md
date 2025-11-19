@@ -1,6 +1,7 @@
 # 🛒 Order API - Exemplos de Uso
 
 ## Índice
+
 - [Autenticação](#autenticação)
 - [Criar Pedido](#criar-pedido)
 - [Listar Pedidos](#listar-pedidos)
@@ -16,22 +17,25 @@
 Todos os endpoints de pedidos requerem autenticação Firebase JWT.
 
 ### Como obter o token (Frontend - Vue.js):
-```javascript
-import { getAuth } from 'firebase/auth'
 
-const auth = getAuth()
-const user = auth.currentUser
-const token = await user.getIdToken()
+```javascript
+import { getAuth } from "firebase/auth";
+
+const auth = getAuth();
+const user = auth.currentUser;
+const token = await user.getIdToken();
 
 // Usar no header Authorization
 const headers = {
-  'Authorization': `Bearer ${token}`,
-  'Content-Type': 'application/json'
-}
+  Authorization: `Bearer ${token}`,
+  "Content-Type": "application/json",
+};
 ```
 
 ### Validação no Backend:
+
 O backend valida o token usando `FirebaseAuth.getInstance().verifyIdToken(token)` e extrai:
+
 - `uid` (ID do usuário)
 - `email` (Email do usuário)
 
@@ -42,6 +46,7 @@ O backend valida o token usando `FirebaseAuth.getInstance().verifyIdToken(token)
 Cria um novo pedido com PIX e retorna QR Code para pagamento.
 
 ### Endpoint
+
 ```http
 POST /api/orders
 Authorization: Bearer <firebase-jwt-token>
@@ -49,6 +54,7 @@ Content-Type: application/json
 ```
 
 ### Request Body
+
 ```json
 {
   "items": [
@@ -76,6 +82,7 @@ Content-Type: application/json
 ```
 
 ### Campos Obrigatórios
+
 - `items`: Lista de produtos (mínimo 1)
   - `productId`: ID do produto (não vazio)
   - `quantity`: Quantidade (mínimo 1)
@@ -85,10 +92,12 @@ Content-Type: application/json
 - `shippingMethod`: COLLECT_ON_DELIVERY | SEDEX | PAC | CUSTOM
 
 ### Campos Opcionais
+
 - `shippingAddress.complement`: Complemento do endereço
 - `notes`: Observações (máximo 500 caracteres)
 
 ### Response - 201 Created
+
 ```json
 {
   "order": {
@@ -101,14 +110,14 @@ Content-Type: application/json
         "productId": "product123",
         "productName": "Produto Exemplo",
         "quantity": 2,
-        "unitPrice": 99.90,
-        "subtotal": 199.80,
+        "unitPrice": 99.9,
+        "subtotal": 199.8,
         "imageUrl": "https://storage.googleapis.com/products/image.jpg"
       }
     ],
-    "subtotal": 299.70,
-    "shippingCost": 15.00,
-    "total": 314.70,
+    "subtotal": 299.7,
+    "shippingCost": 15.0,
+    "total": 314.7,
     "paymentMethod": "PIX",
     "paymentStatus": "PENDING",
     "status": "PENDING",
@@ -130,12 +139,13 @@ Content-Type: application/json
     "qrCodeImage": "data:image/png;base64,iVBORw0KGgoAAAANSUh...",
     "paymentId": "ORDE_ABC123XYZ",
     "expiresAt": "2025-01-18T21:30:00Z",
-    "amount": 314.70
+    "amount": 314.7
   }
 }
 ```
 
 ### Curl Example
+
 ```bash
 # 1. Obter token do Firebase (simular - normalmente vem do frontend)
 FIREBASE_TOKEN="eyJhbGciOiJSUzI1NiIsImtpZCI6..."
@@ -161,22 +171,27 @@ curl -X POST http://localhost:8080/api/orders \
 ```
 
 ### Regras de Negócio
+
 ✅ **Validações:**
+
 - Todos os produtos devem existir e estar ativos
 - Estoque suficiente para todos os itens
 - Endereço de entrega completo e válido
 - CEP no formato XXXXX-XXX
 
 🔢 **Cálculo de Totais:**
+
 - `subtotal` = soma de (preço × quantidade) de todos os itens
 - `shippingCost` = custo do frete baseado no método de envio
 - `total` = subtotal + shippingCost
 
 📦 **Snapshot de Produtos:**
+
 - O pedido salva o nome, preço e imagem do produto no momento da compra
 - Mudanças futuras no produto não afetam pedidos já criados
 
 💳 **Pagamento PIX:**
+
 - QR Code válido por 1 hora
 - Webhook do PagBank notifica quando pagamento é confirmado
 - Status inicial: PENDING
@@ -188,17 +203,20 @@ curl -X POST http://localhost:8080/api/orders \
 Lista todos os pedidos do usuário autenticado com paginação.
 
 ### Endpoint
+
 ```http
 GET /api/orders?limit=10&cursor=order_abc123&status=PENDING
 Authorization: Bearer <firebase-jwt-token>
 ```
 
 ### Query Parameters (Opcionais)
+
 - `limit`: Número de pedidos por página (padrão: 20, máximo: 100)
 - `cursor`: ID do último pedido da página anterior (para paginação)
 - `status`: Filtrar por status (PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED)
 
 ### Response - 200 OK
+
 ```json
 {
   "orders": [
@@ -207,7 +225,7 @@ Authorization: Bearer <firebase-jwt-token>
       "orderNumber": "ORD-20250118-1234",
       "status": "PENDING",
       "paymentStatus": "PENDING",
-      "total": 314.70,
+      "total": 314.7,
       "itemCount": 2,
       "createdAt": "2025-01-18T20:30:00Z"
     },
@@ -216,7 +234,7 @@ Authorization: Bearer <firebase-jwt-token>
       "orderNumber": "ORD-20250117-5678",
       "status": "CONFIRMED",
       "paymentStatus": "PAID",
-      "total": 159.90,
+      "total": 159.9,
       "itemCount": 1,
       "createdAt": "2025-01-17T15:20:00Z"
     }
@@ -227,6 +245,7 @@ Authorization: Bearer <firebase-jwt-token>
 ```
 
 ### Curl Example
+
 ```bash
 # Listar todos os pedidos (primeira página)
 curl -X GET "http://localhost:8080/api/orders?limit=20" \
@@ -242,6 +261,7 @@ curl -X GET "http://localhost:8080/api/orders?status=PENDING" \
 ```
 
 ### Paginação
+
 - **Cursor-based**: Mais eficiente que offset/limit para grandes datasets
 - **hasNext**: indica se há mais páginas
 - **nextCursor**: ID do último pedido da página atual (usar no próximo request)
@@ -253,12 +273,14 @@ curl -X GET "http://localhost:8080/api/orders?status=PENDING" \
 Retorna informações completas de um pedido específico.
 
 ### Endpoint
+
 ```http
 GET /api/orders/{orderId}
 Authorization: Bearer <firebase-jwt-token>
 ```
 
 ### Response - 200 OK
+
 ```json
 {
   "order": {
@@ -271,14 +293,14 @@ Authorization: Bearer <firebase-jwt-token>
         "productId": "product123",
         "productName": "Produto Exemplo",
         "quantity": 2,
-        "unitPrice": 99.90,
-        "subtotal": 199.80,
+        "unitPrice": 99.9,
+        "subtotal": 199.8,
         "imageUrl": "https://storage.googleapis.com/products/image.jpg"
       }
     ],
-    "subtotal": 299.70,
-    "shippingCost": 15.00,
-    "total": 314.70,
+    "subtotal": 299.7,
+    "shippingCost": 15.0,
+    "total": 314.7,
     "paymentMethod": "PIX",
     "paymentStatus": "PAID",
     "paymentId": "ORDE_ABC123XYZ",
@@ -302,7 +324,7 @@ Authorization: Bearer <firebase-jwt-token>
   "payment": {
     "id": "ORDE_ABC123XYZ",
     "status": "PAID",
-    "amount": 314.70,
+    "amount": 314.7,
     "createdAt": "2025-01-18T20:30:00Z"
   },
   "tracking": []
@@ -310,12 +332,14 @@ Authorization: Bearer <firebase-jwt-token>
 ```
 
 ### Curl Example
+
 ```bash
 curl -X GET http://localhost:8080/api/orders/order_abc123 \
   -H "Authorization: Bearer $FIREBASE_TOKEN"
 ```
 
 ### Segurança
+
 - ✅ Usuário só pode ver seus próprios pedidos
 - ❌ Retorna 404 se tentar acessar pedido de outro usuário
 
@@ -326,6 +350,7 @@ curl -X GET http://localhost:8080/api/orders/order_abc123 \
 Cancela um pedido e processa reembolso se já foi pago.
 
 ### Endpoint
+
 ```http
 POST /api/orders/{orderId}/cancel
 Authorization: Bearer <firebase-jwt-token>
@@ -333,6 +358,7 @@ Content-Type: application/json
 ```
 
 ### Request Body
+
 ```json
 {
   "reason": "Produto não está mais disponível"
@@ -340,6 +366,7 @@ Content-Type: application/json
 ```
 
 ### Response - 200 OK
+
 ```json
 {
   "orderId": "order_abc123",
@@ -351,6 +378,7 @@ Content-Type: application/json
 ```
 
 ### Curl Example
+
 ```bash
 curl -X POST http://localhost:8080/api/orders/order_abc123/cancel \
   -H "Authorization: Bearer $FIREBASE_TOKEN" \
@@ -363,16 +391,19 @@ curl -X POST http://localhost:8080/api/orders/order_abc123/cancel \
 ### Regras de Cancelamento
 
 ✅ **Pode cancelar:**
+
 - Status: PENDING (aguardando pagamento)
 - Status: CONFIRMED (pago, mas ainda não enviado)
 
 ❌ **Não pode cancelar:**
+
 - Status: PROCESSING (sendo preparado)
 - Status: SHIPPED (em transporte)
 - Status: DELIVERED (entregue)
 - Status: CANCELLED (já cancelado)
 
 💰 **Reembolso:**
+
 - Se **não pago** (PENDING): cancelamento simples, sem reembolso
 - Se **já pago** (CONFIRMED): marca para reembolso
   - `refundStatus` = PENDING
@@ -394,6 +425,7 @@ O PagBank notifica o backend quando o pagamento é confirmado.
 5. **Backend decrementa estoque** dos produtos
 
 ### Webhook Payload (PagBank → Backend)
+
 ```http
 POST /api/webhooks/pagbank
 Content-Type: application/json
@@ -580,6 +612,7 @@ curl -X POST http://localhost:8080/api/orders/order_abc123/cancel \
 ## Códigos de Erro
 
 ### 400 Bad Request
+
 ```json
 {
   "error": "Invalid request",
@@ -588,6 +621,7 @@ curl -X POST http://localhost:8080/api/orders/order_abc123/cancel \
 ```
 
 ### 401 Unauthorized
+
 ```json
 {
   "error": "Unauthorized",
@@ -596,6 +630,7 @@ curl -X POST http://localhost:8080/api/orders/order_abc123/cancel \
 ```
 
 ### 404 Not Found
+
 ```json
 {
   "error": "Not found",
@@ -604,6 +639,7 @@ curl -X POST http://localhost:8080/api/orders/order_abc123/cancel \
 ```
 
 ### 500 Internal Server Error
+
 ```json
 {
   "error": "Internal server error",
@@ -616,56 +652,60 @@ curl -X POST http://localhost:8080/api/orders/order_abc123/cancel \
 ## Status do Pedido
 
 ### Fluxo Normal
+
 ```
 PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
 ```
 
 ### Estados
 
-| Status | Descrição | Pode Cancelar? |
-|--------|-----------|----------------|
-| `PENDING` | Aguardando pagamento | ✅ Sim |
-| `CONFIRMED` | Pagamento confirmado | ✅ Sim |
-| `PROCESSING` | Pedido sendo preparado | ❌ Não |
-| `SHIPPED` | Em transporte | ❌ Não |
-| `DELIVERED` | Entregue | ❌ Não |
-| `CANCELLED` | Cancelado | - |
+| Status       | Descrição              | Pode Cancelar? |
+| ------------ | ---------------------- | -------------- |
+| `PENDING`    | Aguardando pagamento   | ✅ Sim         |
+| `CONFIRMED`  | Pagamento confirmado   | ✅ Sim         |
+| `PROCESSING` | Pedido sendo preparado | ❌ Não         |
+| `SHIPPED`    | Em transporte          | ❌ Não         |
+| `DELIVERED`  | Entregue               | ❌ Não         |
+| `CANCELLED`  | Cancelado              | -              |
 
 ### Status de Pagamento
 
-| PaymentStatus | Descrição |
-|---------------|-----------|
-| `PENDING` | Aguardando pagamento |
-| `PAID` | Pago |
-| `REFUNDED` | Reembolsado |
-| `CANCELLED` | Cancelado |
+| PaymentStatus | Descrição            |
+| ------------- | -------------------- |
+| `PENDING`     | Aguardando pagamento |
+| `PAID`        | Pago                 |
+| `REFUNDED`    | Reembolsado          |
+| `CANCELLED`   | Cancelado            |
 
 ---
 
 ## Métodos de Envio
 
-| ShippingMethod | Descrição | Custo |
-|----------------|-----------|-------|
-| `COLLECT_ON_DELIVERY` | Retirar no local | R$ 0,00 |
-| `SEDEX` | Correios SEDEX | R$ 15,00 |
-| `PAC` | Correios PAC | R$ 10,00 |
-| `CUSTOM` | Personalizado | Variável |
+| ShippingMethod        | Descrição        | Custo    |
+| --------------------- | ---------------- | -------- |
+| `COLLECT_ON_DELIVERY` | Retirar no local | R$ 0,00  |
+| `SEDEX`               | Correios SEDEX   | R$ 15,00 |
+| `PAC`                 | Correios PAC     | R$ 10,00 |
+| `CUSTOM`              | Personalizado    | Variável |
 
 ---
 
 ## Segurança
 
 ### Firebase JWT
+
 - ✅ Todos os endpoints requerem autenticação
 - ✅ Token validado via `FirebaseAuth.getInstance().verifyIdToken()`
 - ✅ Extração automática de `uid` e `email`
 
 ### Isolamento de Dados
+
 - ✅ Usuário só acessa seus próprios pedidos
 - ✅ OrderService valida `userId` em todas as operações
 - ✅ Retorna 404 para pedidos de outros usuários
 
 ### Validações
+
 - ✅ Jakarta Bean Validation nos DTOs
 - ✅ Estoque validado antes de criar pedido
 - ✅ Estoque validado novamente no webhook (race conditions)
@@ -677,6 +717,7 @@ PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
 ## Firestore Collections
 
 ### orders
+
 ```javascript
 {
   "id": "order_abc123",
@@ -699,6 +740,7 @@ PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
 ```
 
 ### Índices Necessários
+
 ```json
 {
   "indexes": [
@@ -706,32 +748,28 @@ PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
       "collectionGroup": "orders",
       "queryScope": "COLLECTION",
       "fields": [
-        {"fieldPath": "userId", "order": "ASCENDING"},
-        {"fieldPath": "createdAt", "order": "DESCENDING"}
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
     {
       "collectionGroup": "orders",
       "queryScope": "COLLECTION",
       "fields": [
-        {"fieldPath": "userId", "order": "ASCENDING"},
-        {"fieldPath": "status", "order": "ASCENDING"},
-        {"fieldPath": "createdAt", "order": "DESCENDING"}
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
     {
       "collectionGroup": "orders",
       "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "orderNumber", "order": "ASCENDING"}
-      ]
+      "fields": [{ "fieldPath": "orderNumber", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "orders",
       "queryScope": "COLLECTION",
-      "fields": [
-        {"fieldPath": "paymentId", "order": "ASCENDING"}
-      ]
+      "fields": [{ "fieldPath": "paymentId", "order": "ASCENDING" }]
     }
   ]
 }
@@ -742,17 +780,20 @@ PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED
 ## Próximos Passos
 
 1. **Frontend Integration**
+
    - Implementar carrinho de compras (já existe no frontend)
    - Integrar API de pedidos
    - Exibir QR Code PIX
    - Polling para verificar status de pagamento
 
 2. **Notificações**
+
    - Enviar email ao criar pedido
    - Notificar quando pagamento confirmado
    - Alertas de tracking de envio
 
 3. **Admin Panel**
+
    - Dashboard de pedidos
    - Processar pedidos (CONFIRMED → PROCESSING)
    - Adicionar código de rastreamento

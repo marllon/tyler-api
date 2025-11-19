@@ -19,14 +19,20 @@ data class CreateOrderItemRequest(
 
 data class CreateOrderShippingAddressRequest(
         @JsonProperty("name") @field:NotBlank(message = "Nome é obrigatório") val name: String,
-        @JsonProperty("phone") @field:NotBlank(message = "Telefone é obrigatório") val phone: String,
-        @JsonProperty("zipCode") @field:NotBlank(message = "CEP é obrigatório")
+        @JsonProperty("phone")
+        @field:NotBlank(message = "Telefone é obrigatório")
+        val phone: String,
+        @JsonProperty("zipCode")
+        @field:NotBlank(message = "CEP é obrigatório")
         @field:Pattern(regexp = "\\d{8}", message = "CEP deve conter 8 dígitos")
         val zipCode: String,
         @JsonProperty("street") @field:NotBlank(message = "Rua é obrigatória") val street: String,
-        @JsonProperty("number") @field:NotBlank(message = "Número é obrigatório") val number: String,
+        @JsonProperty("number")
+        @field:NotBlank(message = "Número é obrigatório")
+        val number: String,
         @JsonProperty("complement") val complement: String? = null,
-        @JsonProperty("neighborhood") @field:NotBlank(message = "Bairro é obrigatório")
+        @JsonProperty("neighborhood")
+        @field:NotBlank(message = "Bairro é obrigatório")
         val neighborhood: String,
         @JsonProperty("city") @field:NotBlank(message = "Cidade é obrigatória") val city: String,
         @JsonProperty("state")
@@ -34,19 +40,19 @@ data class CreateOrderShippingAddressRequest(
         @field:Size(min = 2, max = 2, message = "Estado deve ter 2 letras")
         val state: String
 ) {
-    fun toShippingAddress(): ShippingAddress {
-        return ShippingAddress(
-                name = name,
-                phone = phone,
-                zipCode = zipCode,
-                street = street,
-                number = number,
-                complement = complement,
-                neighborhood = neighborhood,
-                city = city,
-                state = state.uppercase()
-        )
-    }
+        fun toShippingAddress(): ShippingAddress {
+                return ShippingAddress(
+                        name = name,
+                        phone = phone,
+                        zipCode = zipCode,
+                        street = street,
+                        number = number,
+                        complement = complement,
+                        neighborhood = neighborhood,
+                        city = city,
+                        state = state.uppercase()
+                )
+        }
 }
 
 data class CreateOrderRequest(
@@ -54,14 +60,17 @@ data class CreateOrderRequest(
         @field:Valid
         @field:NotEmpty(message = "Items não pode estar vazio")
         val items: List<CreateOrderItemRequest>,
-        @JsonProperty("shippingAddress") @field:Valid val shippingAddress:
-                CreateOrderShippingAddressRequest,
-        @JsonProperty("paymentMethod") @field:NotNull(message = "Método de pagamento é obrigatório")
+        @JsonProperty("shippingAddress")
+        @field:Valid
+        val shippingAddress: CreateOrderShippingAddressRequest,
+        @JsonProperty("paymentMethod")
+        @field:NotNull(message = "Método de pagamento é obrigatório")
         val paymentMethod: PaymentMethod,
         @JsonProperty("shippingMethod")
         @field:NotNull(message = "Método de envio é obrigatório")
         val shippingMethod: ShippingMethod,
-        @JsonProperty("notes") @field:Size(max = 1000, message = "Notas deve ter no máximo 1000 caracteres")
+        @JsonProperty("notes")
+        @field:Size(max = 1000, message = "Notas deve ter no máximo 1000 caracteres")
         val notes: String? = null
 )
 
@@ -77,18 +86,18 @@ data class OrderItemResponse(
         val subtotal: Double,
         val imageUrl: String?
 ) {
-    companion object {
-        fun fromEntity(item: OrderItem): OrderItemResponse {
-            return OrderItemResponse(
-                    productId = item.productId,
-                    productName = item.productName,
-                    quantity = item.quantity,
-                    unitPrice = item.unitPrice,
-                    subtotal = item.subtotal,
-                    imageUrl = item.imageUrl
-            )
+        companion object {
+                fun fromEntity(item: OrderItem): OrderItemResponse {
+                        return OrderItemResponse(
+                                productId = item.productId,
+                                productName = item.productName,
+                                quantity = item.quantity,
+                                unitPrice = item.unitPrice,
+                                subtotal = item.subtotal,
+                                imageUrl = item.imageUrl
+                        )
+                }
         }
-    }
 }
 
 data class OrderResponse(
@@ -118,37 +127,37 @@ data class OrderResponse(
         val cancelledAt: String?,
         val cancelReason: String?
 ) {
-    companion object {
-        fun fromEntity(order: Order): OrderResponse {
-            return OrderResponse(
-                    id = order.id,
-                    orderNumber = order.orderNumber,
-                    userId = order.userId,
-                    userEmail = order.userEmail,
-                    status = order.status,
-                    statusDescription = order.getStatusDescription(),
-                    items = order.items.map { OrderItemResponse.fromEntity(it) },
-                    subtotal = order.subtotal,
-                    shippingCost = order.shippingCost,
-                    total = order.total,
-                    paymentMethod = order.paymentMethod,
-                    paymentStatus = order.paymentStatus,
-                    shippingMethod = order.shippingMethod,
-                    shippingMethodDescription = order.getShippingMethodDescription(),
-                    shippingAddress = order.shippingAddress,
-                    trackingCode = order.trackingCode,
-                    carrier = order.carrier,
-                    notes = order.notes,
-                    createdAt = order.createdAt,
-                    updatedAt = order.updatedAt,
-                    paidAt = order.paidAt,
-                    shippedAt = order.shippedAt,
-                    deliveredAt = order.deliveredAt,
-                    cancelledAt = order.cancelledAt,
-                    cancelReason = order.cancelReason
-            )
+        companion object {
+                fun fromEntity(order: Order): OrderResponse {
+                        return OrderResponse(
+                                id = order.id,
+                                orderNumber = order.orderNumber,
+                                userId = order.userId,
+                                userEmail = order.userEmail,
+                                status = order.status,
+                                statusDescription = order.getStatusDescription(),
+                                items = order.items.map { OrderItemResponse.fromEntity(it) },
+                                subtotal = order.subtotal,
+                                shippingCost = order.shippingCost,
+                                total = order.total,
+                                paymentMethod = order.paymentMethod,
+                                paymentStatus = order.paymentStatus,
+                                shippingMethod = order.shippingMethod,
+                                shippingMethodDescription = order.getShippingMethodDescription(),
+                                shippingAddress = order.shippingAddress,
+                                trackingCode = order.trackingCode,
+                                carrier = order.carrier,
+                                notes = order.notes,
+                                createdAt = order.createdAt,
+                                updatedAt = order.updatedAt,
+                                paidAt = order.paidAt,
+                                shippedAt = order.shippedAt,
+                                deliveredAt = order.deliveredAt,
+                                cancelledAt = order.cancelledAt,
+                                cancelReason = order.cancelReason
+                        )
+                }
         }
-    }
 }
 
 data class PaymentDetailsResponse(
@@ -173,15 +182,15 @@ data class ListOrdersResponse(
 )
 
 data class TrackingEventResponse(val date: String, val status: String, val location: String) {
-    companion object {
-        fun fromEntity(event: TrackingEvent): TrackingEventResponse {
-            return TrackingEventResponse(
-                    date = event.date,
-                    status = event.status,
-                    location = event.location
-            )
+        companion object {
+                fun fromEntity(event: TrackingEvent): TrackingEventResponse {
+                        return TrackingEventResponse(
+                                date = event.date,
+                                status = event.status,
+                                location = event.location
+                        )
+                }
         }
-    }
 }
 
 data class TrackingResponse(

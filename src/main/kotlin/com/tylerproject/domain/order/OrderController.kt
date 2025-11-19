@@ -23,18 +23,33 @@ class OrderController(private val orderService: OrderService) {
     private val logger = LoggerFactory.getLogger(OrderController::class.java)
 
     @PostMapping
-    @Operation(summary = "Criar novo pedido", description = "Cria um novo pedido com os produtos do carrinho. Requer autenticação Firebase.")
+    @Operation(
+            summary = "Criar novo pedido",
+            description =
+                    "Cria um novo pedido com os produtos do carrinho. Requer autenticação Firebase."
+    )
     @ApiResponses(
-            value = [
-                ApiResponse(
-                        responseCode = "201",
-                        description = "Pedido criado com sucesso",
-                        content = [Content(schema = Schema(implementation = CreateOrderResponse::class))]
-                ),
-                ApiResponse(responseCode = "400", description = "Dados inválidos"),
-                ApiResponse(responseCode = "401", description = "Não autenticado"),
-                ApiResponse(responseCode = "500", description = "Erro interno do servidor")
-            ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "201",
+                                    description = "Pedido criado com sucesso",
+                                    content =
+                                            [
+                                                    Content(
+                                                            schema =
+                                                                    Schema(
+                                                                            implementation =
+                                                                                    CreateOrderResponse::class
+                                                                    )
+                                                    )]
+                            ),
+                            ApiResponse(responseCode = "400", description = "Dados inválidos"),
+                            ApiResponse(responseCode = "401", description = "Não autenticado"),
+                            ApiResponse(
+                                    responseCode = "500",
+                                    description = "Erro interno do servidor"
+                            )]
     )
     fun createOrder(
             @Parameter(description = "Token JWT do Firebase", required = true)
@@ -45,11 +60,12 @@ class OrderController(private val orderService: OrderService) {
         return try {
             val user = validateFirebaseToken(authToken)
 
-            val response = orderService.createOrder(
-                    userId = user.uid,
-                    userEmail = user.email ?: "",
-                    request = request
-            )
+            val response =
+                    orderService.createOrder(
+                            userId = user.uid,
+                            userEmail = user.email ?: "",
+                            request = request
+                    )
 
             ResponseEntity.status(HttpStatus.CREATED).body(response)
         } catch (e: IllegalArgumentException) {
@@ -58,39 +74,57 @@ class OrderController(private val orderService: OrderService) {
         } catch (e: Exception) {
             logger.error("Error creating order: ${e.message}", e)
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(mapOf("error" to "Internal server error", "details" to e.message))
+                    .body(mapOf("error" to "Internal server error", "details" to e.message))
         }
     }
 
     @GetMapping
-    @Operation(summary = "Listar pedidos do usuário", description = "Lista todos os pedidos do usuário autenticado com paginação e filtros")
+    @Operation(
+            summary = "Listar pedidos do usuário",
+            description = "Lista todos os pedidos do usuário autenticado com paginação e filtros"
+    )
     @ApiResponses(
-            value = [
-                ApiResponse(
-                        responseCode = "200",
-                        description = "Lista de pedidos retornada com sucesso",
-                        content = [Content(schema = Schema(implementation = ListOrdersResponse::class))]
-                ),
-                ApiResponse(responseCode = "401", description = "Não autenticado")
-            ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "200",
+                                    description = "Lista de pedidos retornada com sucesso",
+                                    content =
+                                            [
+                                                    Content(
+                                                            schema =
+                                                                    Schema(
+                                                                            implementation =
+                                                                                    ListOrdersResponse::class
+                                                                    )
+                                                    )]
+                            ),
+                            ApiResponse(responseCode = "401", description = "Não autenticado")]
     )
     fun listOrders(
             @Parameter(description = "Token JWT do Firebase", required = true)
             @RequestHeader("Authorization")
             authToken: String,
-            @Parameter(description = "Filtrar por status") @RequestParam(required = false) status: OrderStatus?,
-            @Parameter(description = "Limite de resultados") @RequestParam(required = false, defaultValue = "20") limit: Int,
-            @Parameter(description = "Cursor para paginação") @RequestParam(required = false) cursor: String?
+            @Parameter(description = "Filtrar por status")
+            @RequestParam(required = false)
+            status: OrderStatus?,
+            @Parameter(description = "Limite de resultados")
+            @RequestParam(required = false, defaultValue = "20")
+            limit: Int,
+            @Parameter(description = "Cursor para paginação")
+            @RequestParam(required = false)
+            cursor: String?
     ): ResponseEntity<ListOrdersResponse> {
         return try {
             val user = validateFirebaseToken(authToken)
 
-            val response = orderService.listUserOrders(
-                    userId = user.uid,
-                    status = status,
-                    limit = limit,
-                    cursor = cursor
-            )
+            val response =
+                    orderService.listUserOrders(
+                            userId = user.uid,
+                            status = status,
+                            limit = limit,
+                            cursor = cursor
+                    )
 
             ResponseEntity.ok(response)
         } catch (e: Exception) {
@@ -100,17 +134,31 @@ class OrderController(private val orderService: OrderService) {
     }
 
     @GetMapping("/{orderId}")
-    @Operation(summary = "Obter detalhes de um pedido", description = "Retorna os detalhes completos de um pedido específico")
+    @Operation(
+            summary = "Obter detalhes de um pedido",
+            description = "Retorna os detalhes completos de um pedido específico"
+    )
     @ApiResponses(
-            value = [
-                ApiResponse(
-                        responseCode = "200",
-                        description = "Detalhes do pedido retornados com sucesso",
-                        content = [Content(schema = Schema(implementation = OrderDetailsResponse::class))]
-                ),
-                ApiResponse(responseCode = "404", description = "Pedido não encontrado"),
-                ApiResponse(responseCode = "401", description = "Não autenticado")
-            ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "200",
+                                    description = "Detalhes do pedido retornados com sucesso",
+                                    content =
+                                            [
+                                                    Content(
+                                                            schema =
+                                                                    Schema(
+                                                                            implementation =
+                                                                                    OrderDetailsResponse::class
+                                                                    )
+                                                    )]
+                            ),
+                            ApiResponse(
+                                    responseCode = "404",
+                                    description = "Pedido não encontrado"
+                            ),
+                            ApiResponse(responseCode = "401", description = "Não autenticado")]
     )
     fun getOrderDetails(
             @Parameter(description = "Token JWT do Firebase", required = true)
@@ -135,18 +183,36 @@ class OrderController(private val orderService: OrderService) {
     }
 
     @PostMapping("/{orderId}/cancel")
-    @Operation(summary = "Cancelar pedido", description = "Cancela um pedido. Apenas pedidos em PENDING ou CONFIRMED podem ser cancelados.")
+    @Operation(
+            summary = "Cancelar pedido",
+            description =
+                    "Cancela um pedido. Apenas pedidos em PENDING ou CONFIRMED podem ser cancelados."
+    )
     @ApiResponses(
-            value = [
-                ApiResponse(
-                        responseCode = "200",
-                        description = "Pedido cancelado com sucesso",
-                        content = [Content(schema = Schema(implementation = CancelOrderResponse::class))]
-                ),
-                ApiResponse(responseCode = "400", description = "Pedido não pode ser cancelado"),
-                ApiResponse(responseCode = "404", description = "Pedido não encontrado"),
-                ApiResponse(responseCode = "401", description = "Não autenticado")
-            ]
+            value =
+                    [
+                            ApiResponse(
+                                    responseCode = "200",
+                                    description = "Pedido cancelado com sucesso",
+                                    content =
+                                            [
+                                                    Content(
+                                                            schema =
+                                                                    Schema(
+                                                                            implementation =
+                                                                                    CancelOrderResponse::class
+                                                                    )
+                                                    )]
+                            ),
+                            ApiResponse(
+                                    responseCode = "400",
+                                    description = "Pedido não pode ser cancelado"
+                            ),
+                            ApiResponse(
+                                    responseCode = "404",
+                                    description = "Pedido não encontrado"
+                            ),
+                            ApiResponse(responseCode = "401", description = "Não autenticado")]
     )
     fun cancelOrder(
             @Parameter(description = "Token JWT do Firebase", required = true)
@@ -158,11 +224,12 @@ class OrderController(private val orderService: OrderService) {
         return try {
             val user = validateFirebaseToken(authToken)
 
-            val response = orderService.cancelOrder(
-                    userId = user.uid,
-                    orderId = orderId,
-                    reason = request?.reason
-            )
+            val response =
+                    orderService.cancelOrder(
+                            userId = user.uid,
+                            orderId = orderId,
+                            reason = request?.reason
+                    )
 
             ResponseEntity.ok(response)
         } catch (e: IllegalArgumentException) {
